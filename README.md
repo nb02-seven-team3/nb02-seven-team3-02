@@ -26,25 +26,23 @@ Database: PostgreSQL
 
 ```mermaid
 erDiagram
+
     Group ||--o{ GroupTag: has
     GroupTag }o--|| Tag : has
-    Group ||--|| User : owner
-    Group ||--|{ Participant : participate
-    Participant }o--|| User : participate
-    Rank ||--|| Group : update
-    Record }o--|| User : record
+    Group ||--o{ Participant : participate
+    Record }o--|| Participant : record
     Record }o--|| Group : record
     Participant ||--|| Rank : ranking
 
     Tag {
         Int     id              PK
         String  name
-        Date    createdAt
-        Date    updatedAt
     }
     Group { 
         Int     id              PK
-        Int     ownerId         FK "User.id"
+        Int     ownerParticipantId FK "Participant.id"
+        String  ownerNickname
+        String  ownerPassword
         String  name
         String  description
         String  photoUrl
@@ -60,19 +58,12 @@ erDiagram
         Int     id              PK
         Int     groupId         FK "Group.id"
         Int     tagId           FK "Tag.id"
-        
-    }
-    User {
-        Int     id              PK
-        String  nickname
-        String  password
-        Date    createdAt
-        Date    updatedAt
     }
     Participant {
         Int     id              PK
-        Int     userId          FK "User.id"
         Int     groupId         FK "Group.id"
+        String  nickname
+        String  password
         Date    createdAt
         Date    updatedAt
     }
@@ -83,7 +74,7 @@ erDiagram
         Int     time
         Int     distance
         Array   photos
-        Int     authorId        FK "User.id"
+        Int     participantId   FK "Participant.id"
         Int     groupId         FK "Group.id"
         Date    createdAt
         Date    updatedAt
@@ -94,4 +85,5 @@ erDiagram
         Int     recordCount
         Int     recordTime
     }
+
 ```
