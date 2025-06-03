@@ -5,10 +5,10 @@
 ---
 
 ### 팀원 구성
-권은혜 (개인 Github 링크)
-고민재 (개인 Github 링크)
-박건영 (개인 Github 링크)
-윤희원 (개인 Github 링크)
+권은혜 (https://github.com/3023kk)
+고민재 (https://github.com/nbkominjae)
+박건영 (https://github.com/geonyoung28)
+윤희원 (https://github.com/yun-heewon)
 진성남 (https://github.com/jinseongnam)
 
 ---
