@@ -39,6 +39,8 @@ erDiagram
     Tag {
         Int     id              PK
         String  name
+        Date    createdAt
+        Date    updatedAt
     }
     Group { 
         Int     id              PK
@@ -58,6 +60,7 @@ erDiagram
         Int     id              PK
         Int     groupId         FK "Group.id"
         Int     tagId           FK "Tag.id"
+        
     }
     User {
         Int     id              PK
