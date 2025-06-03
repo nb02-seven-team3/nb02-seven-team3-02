@@ -9,7 +9,7 @@
 고민재 (개인 Github 링크)
 박건영 (개인 Github 링크)
 윤희원 (개인 Github 링크)
-진성남남 (개인 Github 링크
+진성남 (https://github.com/jinseongnam)
 
 ---
 
