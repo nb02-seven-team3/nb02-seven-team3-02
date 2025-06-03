@@ -30,10 +30,11 @@ erDiagram
     GroupTag }o--|| Tag : has
     Group ||--|| User : owner
     Group ||--|{ Participant : participate
-    Participant }|--|| User : participate
+    Participant }o--|| User : participate
     Rank ||--|| Group : update
     Record }o--|| User : record
     Record }o--|| Group : record
+    Participant ||--|| Rank : ranking
 
     Tag {
         Int     id              PK
@@ -90,7 +91,7 @@ erDiagram
     }
     Rank {
         Int     id              PK
-        Int     groupId         FK "Group.id"
+        Int     participantId   FK "Participant.id"
         Int     recordCount
         Int     recordTime
         Date    createdAt
