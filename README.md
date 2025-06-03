@@ -23,3 +23,6 @@
 Backend: Express.js, PrismaORM
 Database: PostgreSQL
 공통 Tool: Git & Github, Discord
+
+
+erDiagram
