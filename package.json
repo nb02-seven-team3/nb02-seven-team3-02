@@ -2,6 +2,7 @@
   "name": "nb02-seven-team3-02",
   "version": "0.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "start": "node ./bin/www"
   },
