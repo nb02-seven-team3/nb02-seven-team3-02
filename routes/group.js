@@ -195,7 +195,36 @@ router.patch('/change/:id', async (req,res,next) =>{
   }  
 });
 
+// 그룹 삭제 API /groups/remove/:groupId
 
+router.delete('/remove/:id', async (req,res,next) =>{
+  const id = Number(req.params.id);
+  const {ownerPassword : enterPassword} = req.body;
+  const realPassword = await db.group.findUnique({
+    where : {
+      id : id
+    },
+    select :{
+      ownerPassword : true
+    },
+  });
+
+  if (!realPassword){
+    return res.status(404).json({message : "없는 그룹입니다."});
+  }
+
+
+  if(enterPassword === realPassword.ownerPassword){
+    const deleteGroup = await db.group.deleteMany({
+      where:{
+        id : id
+      }
+    })
+    return res.json(deleteGroup);
+  }else{
+   return res.status(401).json({message : "Wrong password"});
+  }
+});
 
 
 

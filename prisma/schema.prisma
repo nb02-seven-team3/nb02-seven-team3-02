@@ -53,7 +53,7 @@ model Group {
 
 model GroupTag {
   id      Int   @id @default(autoincrement())
-  group   Group @relation(fields: [groupId], references: [id])
+  group   Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
   groupId Int
   tag     Tag   @relation(fields: [tagId], references: [id])
   tagId   Int
@@ -82,7 +82,7 @@ model Record {
   photos        String[]
   participant   Participant @relation(fields: [participantId], references: [id])
   participantId Int
-  group         Group @relation(fields: [groupId], references: [id])
+  group         Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
   groupId       Int
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
