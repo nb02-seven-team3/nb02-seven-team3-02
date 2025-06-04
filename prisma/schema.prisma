@@ -25,14 +25,14 @@ datasource db {
 
 model Tag {
   id        Int        @id @default(autoincrement())
-  name      String
+  name      String     @unique
   groupTags GroupTag[]
 }
 
 model Group {
   id                 Int          @id @default(autoincrement())
-  ownerParticipant   Participant? @relation("GroupOwner", fields: [ownerParticipantId], references: [id] )
-  ownerParticipantId Int
+  ownerParticipant   Participant? @relation("GroupOwner", fields: [ownerParticipantId], references: [id], onDelete: Cascade )
+  ownerParticipantId Int?
   ownerNickname      String
   ownerPassword      String
   name               String
@@ -43,7 +43,7 @@ model Group {
   discordInviteUrl   String
   badges             String[]
   likeCount          Int
-  createdAt          DateTime     @default(now())
+  createdAt          DateTime     @default(now()) 
   updatedAt          DateTime     @updatedAt
 
   participants Participant[]
@@ -61,7 +61,7 @@ model GroupTag {
 
 model Participant {
   id        Int      @id @default(autoincrement())
-  group     Group    @relation(fields: [groupId], references: [id])
+  group     Group    @relation( fields: [groupId], references: [id], onDelete: Cascade)
   groupId   Int
   nickname  String
   password  String
