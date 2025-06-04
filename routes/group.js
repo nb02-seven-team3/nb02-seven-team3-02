@@ -215,7 +215,7 @@ router.delete('/remove/:id', async (req,res,next) =>{
 
 
   if(enterPassword === realPassword.ownerPassword){
-    const deleteGroup = await db.group.deleteMany({
+    const deleteGroup = await db.group.delete({
       where:{
         id : id
       }
