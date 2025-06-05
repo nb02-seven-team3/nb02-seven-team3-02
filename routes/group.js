@@ -20,6 +20,7 @@ router.get('/list', async (req,res,next) =>{
     },
 
     select:{
+      id:true,
       name :true,
       photoUrl :true,
       groupTags : true,
@@ -51,6 +52,7 @@ router.get('/:id' , async (req,res,next) =>{
       id : id
     },
     select:{
+      id:true,
       name: true,
       description :true,
       participants: {
@@ -58,8 +60,8 @@ router.get('/:id' , async (req,res,next) =>{
           nickname : true
         },
       },
+      likeCount : true,
       photoUrl : true,
-
       _count:{
         select:{
           participants :true
@@ -76,6 +78,37 @@ router.get('/:id' , async (req,res,next) =>{
 
 
 });
+
+// 그룹 좋아요 개수증가 
+
+router.post('/:id/likes' , async (req,res,next) => {
+  const id = Number(req.params.id);
+  const groupLike = await db.group.update({
+    where : {id : id},
+    data : {
+      likeCount : { increment : 1}
+    }
+  });
+  return res.json({ likeCount : groupLike.likeCount});
+
+});
+
+// 그룹 좋아요 취소 
+
+router.delete('/:id/likes/remove', async (req,res,next) => {
+  const id = Number(req.params.id);
+  const removeLike = await db.group.update({
+    where : { id : id},
+    data: {
+      likeCount : {decrement : 1}
+    }
+  });
+  return res.json({ likeCount : removeLike.likeCount});
+
+});
+
+
+
 
 
 
@@ -95,6 +128,11 @@ router.post('/', async (req, res, next) => {
     } = req.body;
 
     
+    // goalRep 정수가 아닐시에 오류처리 
+    if(!Number.isInteger(goalRep)){
+      return res.status(400).json({message : "goalRep must be an integer" });
+    }
+    
 
     // ─────── Prisma 트랜잭션 시작 ───────
     const createdGroup = await db.$transaction(async (tx) => {
@@ -105,7 +143,7 @@ router.post('/', async (req, res, next) => {
           name,
           description,
           photoUrl,
-          goalRep,
+          goalRep ,
           discordWebhookUrl,
           discordInviteUrl,
           badges: [],       // String[] 타입

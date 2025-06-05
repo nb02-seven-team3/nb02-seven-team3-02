@@ -2,10 +2,10 @@ POST http://localhost:3000/groups
 Content-Type: application/json
 
 {
-  "name": "string",
-  "description": "string",
+  "name": "test그룹룹",
+  "description": "테스트 그룹입니다.",
   "photoUrl": "string",
-  "goalRep": 0,
+  "goalRep": 10,
   "discordWebhookUrl": "string",
   "discordInviteUrl": "string",
   "ownerNickname": "abc",
@@ -14,18 +14,27 @@ Content-Type: application/json
 }
 
 ###
-
+# 그룹목록조회 
 GET http://localhost:3000/groups/list
 Content-Type: application/json
 
 ###
+#  그룹상세조회 
+GET http://localhost:3000/groups/21
 
-GET http://localhost:3000/groups/10
+###
+# 그룹좋아요늘리기 
+POST http://localhost:3000/groups/21/likes
+
+###
+# 그룹 좋아요 취소 
+DELETE  http://localhost:3000/groups/21/likes/remove
+
 
 
 ###
 
-PATCH  http://localhost:3000/groups/change/10
+PATCH  http://localhost:3000/groups/change/11
 Content-Type: application/json
 
 {
@@ -41,7 +50,7 @@ Content-Type: application/json
 
 
 ###
-DELETE  http://localhost:3000/groups/remove/10
+DELETE  http://localhost:3000/groups/remove/11
 Content-Type: application/json
 
 {
