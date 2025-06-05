@@ -1,5 +1,6 @@
 import express from 'express';
 import { db } from '../utils/db.js';
+import { error } from 'console';
 const router = express.Router();
 
 
@@ -9,6 +10,7 @@ const router = express.Router();
 
 // 그룹 목록 조회 /groups/list  기본 최신순 정렬, 추천수 정렬, 참여자 수 정렬은 participant Api 작성 후 설정 
 router.get('/list', async (req,res,next) =>{
+  try{
   const {name = '' , offset = 0 , limit = 10 , order = 'createdAt'} = req.query;
   let orderBy;
   switch (order) {
@@ -19,10 +21,11 @@ router.get('/list', async (req,res,next) =>{
       orderBy =  {likeCount : 'desc'}
       break;
     default :
-      orderBy = {createdAt : 'desc'}
+      return res.status(400).json({message : "The orderBy parameter must be one of the following values: [‘likeCount’, ‘participantCount’, ‘createdAt’]."})
    
   }
   console.log('orderBy:', orderBy); 
+  
   const groupList = await db.group.findMany({
     where:{
       name : {
@@ -53,11 +56,17 @@ router.get('/list', async (req,res,next) =>{
 
   });
   res.json(groupList);
-
+  }catch(e){
+    console.log(e);
+    next(e);
+  }
 });
+
+
 
 // 그룹 상세조회 /groups/:groupId
 router.get('/:id' , async (req,res,next) =>{
+  try{
   const id = Number(req.params.id);
   const groupDetail = await db.group.findUnique({
     where :{
@@ -83,17 +92,19 @@ router.get('/:id' , async (req,res,next) =>{
     }
   });
   if(!groupDetail){
-    res.status(404).json({message : "없는 그룹입니다."})
+    res.status(404).json({message : "Group not found"})
   }else{
     res.json(groupDetail);
+  }}catch(e){
+    console.log(e);
+    next(e);
   }
-
-
 });
 
 // 그룹 좋아요 개수증가 
 
 router.post('/:id/likes' , async (req,res,next) => {
+  try{
   const id = Number(req.params.id);
   const groupLike = await db.group.update({
     where : {id : id},
@@ -102,13 +113,18 @@ router.post('/:id/likes' , async (req,res,next) => {
     }
   });
   return res.json({ likeCount : groupLike.likeCount});
-
+  }catch(e){
+    console.log(e);
+    next(e);
+  }
 });
 
 // 그룹 좋아요 취소 
 
 router.delete('/:id/likes/remove', async (req,res,next) => {
+  try{
   const id = Number(req.params.id);
+  
   const removeLike = await db.group.update({
     where : { id : id},
     data: {
@@ -116,7 +132,10 @@ router.delete('/:id/likes/remove', async (req,res,next) => {
     }
   });
   return res.json({ likeCount : removeLike.likeCount});
-
+  }catch(e){
+    console.log(e);
+    next(e);
+  }
 });
 
 
@@ -200,6 +219,7 @@ router.post('/', async (req, res, next) => {
 
 // 그룹 수정 /groups/change/:groupId
 router.patch('/change/:id', async (req,res,next) =>{
+  try{
   const id = Number(req.params.id);
   const {
     name,
@@ -210,6 +230,12 @@ router.patch('/change/:id', async (req,res,next) =>{
     discordInviteUrl,
     groupTags,
   } = req.body;
+
+  
+  if(!Number.isInteger(goalRep)){
+    return res.status(400).json({message : "goalRep must be an integer" });
+  }     
+
   const realPassword = await db.group.findUnique({
     where : {
       id : id
@@ -242,12 +268,17 @@ router.patch('/change/:id', async (req,res,next) =>{
     res.json(changeGroup);
   }else{
     res.status(401).json({ message : "Wrong password"})
+  }
+  }catch(e){
+    console.log(e);
+    next(e);
   }  
 });
 
 // 그룹 삭제 API /groups/remove/:groupId
 
 router.delete('/remove/:id', async (req,res,next) =>{
+  try{
   const id = Number(req.params.id);
   const {ownerPassword : enterPassword} = req.body;
   const realPassword = await db.group.findUnique({
@@ -273,6 +304,10 @@ router.delete('/remove/:id', async (req,res,next) =>{
     return res.json(deleteGroup);
   }else{
    return res.status(401).json({message : "Wrong password"});
+  }
+  }catch(e){
+    console.log(e);
+    next(e);
   }
 });
 
