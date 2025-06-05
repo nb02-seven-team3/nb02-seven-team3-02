@@ -95,28 +95,35 @@ router.get(
   }
 );
 
-/**
- * 4) PUT /groups/:groupId/participants/:participantId/records/:recordId
- *    특정 Record를 수정
- */
-router.put(
+router.get(
   '/groups/:groupId/participants/:participantId/records/:recordId',
   async (req, res, next) => {
     try {
-      const { recordId } = req.params;
-      const updateData = req.body; // 수정할 필드만 포함
+      const { groupId, participantId, recordId } = req.params;
 
-      const updated = await db.record.update({
+      // 1) 해당 recordId가 존재하는지 확인
+      const record = await db.record.findUnique({
         where: { id: Number(recordId) },
-        data:  updateData,
       });
+      if (!record) {
+        return res.status(404).json({ message: '해당 레코드를 찾을 수 없습니다.' });
+      }
 
-      return res.json(updated);
+      // 2) URL 경로의 groupId/participantId와 DB의 정보가 일치하는지 확인
+      if (
+        record.groupId !== Number(groupId) ||
+        record.participantId !== Number(participantId)
+      ) {
+        return res.status(400).json({ message: '잘못된 경로로 접근했습니다.' });
+      }
+
+      return res.json(record);
     } catch (err) {
       next(err);
     }
   }
 );
+
 
 /**
  * 5) DELETE /groups/:groupId/participants/:participantId/records/:recordId
