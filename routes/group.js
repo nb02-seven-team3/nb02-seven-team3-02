@@ -7,10 +7,22 @@ const router = express.Router();
 // 모든 그룹 /groups 로 요청 
 
 
-// 그룹 목록 조회 /groups/list
+// 그룹 목록 조회 /groups/list  기본 최신순 정렬, 추천수 정렬, 참여자 수 정렬은 participant Api 작성 후 설정 
 router.get('/list', async (req,res,next) =>{
-  const {name = '' , offset = 0 , limit = 10} = req.query;
-
+  const {name = '' , offset = 0 , limit = 10 , order = 'createdAt'} = req.query;
+  let orderBy;
+  switch (order) {
+    case 'createdAt' :
+      orderBy =  {createdAt : 'desc'}
+      break;
+    case 'likeCount' :
+      orderBy =  {likeCount : 'desc'}
+      break;
+    default :
+      orderBy = {createdAt : 'desc'}
+   
+  }
+  console.log('orderBy:', orderBy); 
   const groupList = await db.group.findMany({
     where:{
       name : {
@@ -35,7 +47,7 @@ router.get('/list', async (req,res,next) =>{
       }    
      },
     },  
-    orderBy : {createdAt : "desc"},
+    orderBy,
     skip : offset,
     take : limit    
 

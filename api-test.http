@@ -15,7 +15,7 @@ Content-Type: application/json
 
 ###
 # 그룹목록조회 
-GET http://localhost:3000/groups/list
+GET http://localhost:3000/groups/list?order=likeCount&name=그룹룹g
 Content-Type: application/json
 
 ###
