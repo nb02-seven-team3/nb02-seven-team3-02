@@ -1,8 +1,16 @@
+POST http://localhost:3000/image/upload
+
+photo=@"C:/Users/user/Desktop/sample.jpeg"
+
+
+
+
+###
 POST http://localhost:3000/groups
 Content-Type: application/json
 
 {
-  "name": "test그룹룹",
+  "name": "그룹태그그룹룹",
   "description": "테스트 그룹입니다.",
   "photoUrl": "string",
   "goalRep": 10,
@@ -10,7 +18,7 @@ Content-Type: application/json
   "discordInviteUrl": "string",
   "ownerNickname": "abc",
   "ownerPassword": "123123",
-  "tags" : ["string"]
+  "tags" : ["as", "운동", "여가"]
 }
 
 ###

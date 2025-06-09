@@ -24,7 +24,7 @@ datasource db {
 //     Record }o--|| Group : record
 //     Participant ||--|| Rank : ranking
 
-model Tag {
+model Tag { 
   id        Int        @id @default(autoincrement())
   name      String     @unique
   groupTags GroupTag[]

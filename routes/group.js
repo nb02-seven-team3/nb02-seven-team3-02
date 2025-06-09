@@ -65,7 +65,7 @@ router.get('/list', async (req,res,next) =>{
   }
 });
 
-
+ 
 
 // 그룹 상세조회 /groups/:groupId
 // select로 원하는 필드만 나타남
@@ -171,11 +171,8 @@ router.delete('/:id/likes/remove', async (req,res,next) => {
 
 
 
-
-
-
 // 그룹 생성 API /groups
-// 트랜잭션 사용 그룹이 하나도 없을 시 그룹 생성 가정함 // 새로운 그룹 생성 > 그룹소유자(참여자) id 생성 > 새로운 그룹 업데이트(ownerParticipantID 추가)
+// 트랜잭션 사용 그룹이 하나도 없을 시 그룹 생성 가정 // 새로운 그룹 생성 > 그룹소유자(참여자) id 생성 > 새로운 그룹 업데이트(ownerParticipantID 추가)
 router.post('/', async (req, res, next) => {
   try {
     let {
@@ -236,6 +233,7 @@ router.post('/', async (req, res, next) => {
       });
 
       
+
 
       // 최종적으로 “ownerParticipantId가 채워진” Group 객체를 반환
       return updatedGroup;
@@ -352,4 +350,4 @@ router.delete('/remove/:id', async (req,res,next) =>{
 
 
 
-export default router;
+export default router; 
