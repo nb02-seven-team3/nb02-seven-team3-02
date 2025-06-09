@@ -1,32 +1,75 @@
 // routes/record.js
 import express from 'express';
+import multer from 'multer';
 import { db } from '../utils/db.js';
+import axios from 'axios';
 
 const router = express.Router();
 
+// Multer 설정: uploads/ 폴더에 저장, 파일명은 원본 + 타임스탬프
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, 'uploads/'),
+  filename: (req, file, cb) => {
+    const ext = file.originalname.split('.').pop();
+    const name = `${Date.now()}-${Math.random().toString(36).substr(2, 6)}.${ext}`;
+    cb(null, name);
+  },
+});
+const upload = multer({ storage });
+
 /**
- * 1) POST /groups/:groupId/participants/:participantId/records
- *    특정 그룹의 특정 참여자가 새 Record를 생성
+ * POST /groups/:groupId/participants/:participantId/records
+ * 운동 기록 등록 
  */
 router.post(
   '/groups/:groupId/participants/:participantId/records',
+  upload.array('photos', 5),  
   async (req, res, next) => {
     try {
       const { groupId, participantId } = req.params;
-      const { exerciseType, description, time, distance, photos } = req.body;
+      const { nickname, password, exerciseType, description, time, distance } = req.body;
+      const files = req.files || [];
 
+      // 1) 사용자 검증
+      const participant = await db.participant.findUnique({
+        where: { id: Number(participantId) },
+        select: { nickname: true, password: true, groupId: true },
+      });
+      if (!participant || participant.groupId !== Number(groupId) || participant.nickname !== nickname) {
+        return res.status(401).json({ message: 'Invalid user.' });
+      }
+      if (participant.password !== password) {
+        return res.status(401).json({ message: 'Wrong password.' });
+      }
+
+      // 2) 파일명 배열 생성
+      const photoFilenames = files.map(f => f.filename);
+
+      // 3) Record 생성
       const newRecord = await db.record.create({
         data: {
           exerciseType,
           description,
-          time,
-          distance,
-          photos,
+          time: Number(time),
+          distance: Number(distance),
+          photos: photoFilenames,  // photos 필드: string[]
           group:      { connect: { id: Number(groupId) } },
           participant:{ connect: { id: Number(participantId) } },
         },
       });
-      return res.status(201).json(newRecord);
+
+      // 4) 디스코드 알림
+      const group = await db.group.findUnique({
+        where: { id: Number(groupId) },
+        select: { discordWebhookUrl: true },
+      });
+      if (group?.discordWebhookUrl) {
+        axios.post(group.discordWebhookUrl, {
+          content: `새 운동 기록 등록\n닉네임: ${nickname}\n운동: ${exerciseType}\n시간: ${time}초\n거리: ${distance}m`,
+        }).catch(console.error);
+      }
+
+      res.status(201).json(newRecord);
     } catch (err) {
       next(err);
     }
@@ -34,110 +77,55 @@ router.post(
 );
 
 /**
- * 2) GET /groups/:groupId/records
- *    특정 그룹 내 모든 Record 목록 조회 (페이징, 날짜 필터링 포함)
+ * GET /groups/:groupId/records
+ * 기록 목록 조회 (페이징, 검색, 정렬)
  */
 router.get('/groups/:groupId/records', async (req, res, next) => {
   try {
     const { groupId } = req.params;
-    const { page = 1, limit = 10, startDate, endDate } = req.query;
+    const { page = 1, limit = 10, sortBy = 'date', nickname = '' } = req.query;
 
-    // 날짜 필터 조건 설정
-    const dateFilter = {};
-    if (startDate && endDate) {
-      dateFilter.createdAt = {
-        gte: new Date(startDate),
-        lte: new Date(endDate),
-      };
-    }
+    const where = {
+      groupId: Number(groupId),
+      participant: { nickname: { contains: nickname, mode: 'insensitive' } },
+    };
+    const orderBy = sortBy === 'time' ? { time: 'desc' } : { createdAt: 'desc' };
 
     const records = await db.record.findMany({
-      where: {
-        groupId: Number(groupId),
-        ...dateFilter,
-      },
-      orderBy: { createdAt: 'desc' },
-      skip:  (Number(page) - 1) * Number(limit),
-      take:  Number(limit),
+      where,
+      orderBy,
+      skip: (Number(page) - 1) * Number(limit),
+      take: Number(limit),
       include: {
         participant: { select: { id: true, nickname: true } },
       },
     });
-
-    return res.json(records);
+    res.json(records);
   } catch (err) {
     next(err);
   }
 });
 
 /**
- * 3) GET /groups/:groupId/participants/:participantId/records
- *    특정 그룹에서 특정 참여자의 개인 Record 조회
+ * GET /groups/:groupId/participants/:participantId/records/:recordId
+ * 단일 기록 상세 조회
  */
-router.get(
-  '/groups/:groupId/participants/:participantId/records',
-  async (req, res, next) => {
-    try {
-      const { groupId, participantId } = req.params;
-
-      const records = await db.record.findMany({
-        where: {
-          groupId:       Number(groupId),
-          participantId: Number(participantId),
-        },
-        orderBy: { createdAt: 'desc' },
-      });
-
-      return res.json(records);
-    } catch (err) {
-      next(err);
-    }
-  }
-);
-
 router.get(
   '/groups/:groupId/participants/:participantId/records/:recordId',
   async (req, res, next) => {
     try {
       const { groupId, participantId, recordId } = req.params;
-
-      // 1) 해당 recordId가 존재하는지 확인
       const record = await db.record.findUnique({
         where: { id: Number(recordId) },
+        include: {
+          participant: { select: { nickname: true } },
+        },
       });
-      if (!record) {
-        return res.status(404).json({ message: '해당 레코드를 찾을 수 없습니다.' });
+      if (!record || record.groupId !== Number(groupId) || record.participantId !== Number(participantId)) {
+        return res.status(404).json({ message: 'Record not found.' });
       }
-
-      // 2) URL 경로의 groupId/participantId와 DB의 정보가 일치하는지 확인
-      if (
-        record.groupId !== Number(groupId) ||
-        record.participantId !== Number(participantId)
-      ) {
-        return res.status(400).json({ message: '잘못된 경로로 접근했습니다.' });
-      }
-
-      return res.json(record);
-    } catch (err) {
-      next(err);
-    }
-  }
-);
-
-
-/**
- * 5) DELETE /groups/:groupId/participants/:participantId/records/:recordId
- *    특정 Record를 삭제
- */
-router.delete(
-  '/groups/:groupId/participants/:participantId/records/:recordId',
-  async (req, res, next) => {
-    try {
-      const { recordId } = req.params;
-      await db.record.delete({
-        where: { id: Number(recordId) },
-      });
-      return res.status(204).send();
+      const { exerciseType, description, photos, time, distance, participant } = record;
+      res.json({ exerciseType, description, photos, time, distance, nickname: participant.nickname });
     } catch (err) {
       next(err);
     }
@@ -145,3 +133,4 @@ router.delete(
 );
 
 export default router;
+
