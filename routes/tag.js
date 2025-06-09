@@ -2,11 +2,45 @@ import express from 'express';
 import { db } from '../utils/db.js';
 const router = express.Router();
 
+// tag 목록 조회
+router.get('/list', async (req, res, next) => {
+    let orderBy;
+    const { offset = 0, limit = 10, order = 'newest' } = req.query;
+    switch (order) {
+        case 'older':
+            orderBy = { createdAt: 'asc' };
+            break;
+        case 'newest':
+        default:
+            orderBy = { createdAt: 'desc' };
+    };
+
+    try {
+        const tagsList = await db.tag.findMany({
+           
+            orderBy,
+            skip: parseInt(offset),
+            take: parseInt(limit),
+            select: {
+                id: true,
+                name: true,
+            }
+        });
+        res.status(200).json(tagsList);
+    } catch (error) {
+        console.error('Error fetching tags:', error);
+        next(error);
+    }
+});
+
 
 // tag 개별 상세 조회 
 router.get('/:id', async (req, res, next) => {
     try {
         const id = Number(req.params.id);
+        if (isNaN(id)) {
+          return res.status(400).json({ message: 'Invalid id parameter' });
+    }
         const tag = await db.tag.findUnique({
             where: { id },
             select: {
@@ -25,36 +59,7 @@ router.get('/:id', async (req, res, next) => {
     }
 })
 
-// tag 목록 조회
-router.get('/list', async (req, res, next) => {
-    let orderBy;
-    const { offset = 0, limit = 10, order = 'newest' } = req.query;
-    switch (order) {
-        case 'older':
-            orderBy = { createdAt: 'asc' };
-            break;
-        case 'newest':
-        default:
-            orderBy = { createdAt: 'desc' };
-    };
 
-    try {
-        const tagsList = await db.tag.findMany({
-            where, // 확장성을 위해 where 조건 유지 
-            orderBy,
-            skip: parseInt(offset),
-            take: parseInt(limit),
-            select: {
-                id: true,
-                name: true,
-            }
-        });
-        res.status(200).json(tagsList);
-    } catch (error) {
-        console.error('Error fetching tags:', error);
-        next(error);
-    }
-});
 
 // tag 생성 
 router.post('/', async (req, res, next) => {

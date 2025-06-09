@@ -1,3 +1,9 @@
+
+
+
+
+# 그룹 image 업로드 
+
 POST http://localhost:3000/image/upload
 
 photo=@"C:/Users/user/Desktop/sample.jpeg"
@@ -10,7 +16,7 @@ POST http://localhost:3000/groups
 Content-Type: application/json
 
 {
-  "name": "그룹태그그룹룹",
+  "name": "태그 테스트 그룹",
   "description": "테스트 그룹입니다.",
   "photoUrl": "string",
   "goalRep": 10,
@@ -18,7 +24,7 @@ Content-Type: application/json
   "discordInviteUrl": "string",
   "ownerNickname": "abc",
   "ownerPassword": "123123",
-  "tags" : ["as", "운동", "여가"]
+  "tags" : ["as", "운동", "여가", "안녕"]
 }
 
 ###
@@ -64,3 +70,11 @@ Content-Type: application/json
 {
   "ownerPassword" : "123123"
 }
+
+
+
+#태그 조회 
+###
+GET http://localhost:3000/tags/list
+Content-Type: application/json
+
