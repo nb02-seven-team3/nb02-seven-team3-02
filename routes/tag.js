@@ -88,6 +88,8 @@ router.post('/', async (req, res, next) => {
     }
 });
 
+export default router
+
 // // tag 삭제 
 // router.delete('/:id', async (req, res, next) => {
 //     try {
