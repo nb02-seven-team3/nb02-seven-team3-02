@@ -12,6 +12,9 @@ import { dirname, join } from 'path';
 import groupRouter from './routes/group.js';
 import recordRouter from './routes/record.js';
 import imageRouter from './routes/image.js';
+import tagRouter from './routes/tag.js';
+
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -31,9 +34,12 @@ app.use(express.static(join(__dirname, 'public')));
 
 
 // route 사용
+
 app.use('/image' , imageRouter);
 app.use('/groups' , groupRouter );
 app.use('/record' , recordRouter);
+app.use('/groups', groupRouter);
+app.use('/tags', tagRouter);
 
 
 
