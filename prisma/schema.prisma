@@ -1,4 +1,5 @@
-// This is your Prisma schema file,
+
+// This is your Prisma schema file,Add commentMore actions
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
@@ -19,20 +20,20 @@ datasource db {
 //     Group ||--o{ GroupTag: has
 //     GroupTag }o--|| Tag : has
 //     Group ||--o{ Participant : participate
-//     Record }o--|| Participant : record
+//     Record }o--|| {Participant : record
 //     Record }o--|| Group : record
 //     Participant ||--|| Rank : ranking
 
 model Tag {
   id        Int        @id @default(autoincrement())
-  name      String
+  name      String     @unique
   groupTags GroupTag[]
 }
 
 model Group {
   id                 Int          @id @default(autoincrement())
-  ownerParticipant   Participant? @relation("GroupOwner", fields: [ownerParticipantId], references: [id] )
-  ownerParticipantId Int
+  ownerParticipant   Participant? @relation("GroupOwner", fields: [ownerParticipantId], references: [id], onDelete: Cascade )
+  ownerParticipantId Int?
   ownerNickname      String
   ownerPassword      String
   name               String
@@ -43,7 +44,7 @@ model Group {
   discordInviteUrl   String
   badges             String[]
   likeCount          Int
-  createdAt          DateTime     @default(now())
+  createdAt          DateTime     @default(now()) 
   updatedAt          DateTime     @updatedAt
 
   participants Participant[]
@@ -53,7 +54,7 @@ model Group {
 
 model GroupTag {
   id      Int   @id @default(autoincrement())
-  group   Group @relation(fields: [groupId], references: [id])
+  group   Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
   groupId Int
   tag     Tag   @relation(fields: [tagId], references: [id])
   tagId   Int
@@ -61,7 +62,7 @@ model GroupTag {
 
 model Participant {
   id        Int      @id @default(autoincrement())
-  group     Group    @relation(fields: [groupId], references: [id])
+  group     Group    @relation( fields: [groupId], references: [id], onDelete: Cascade)
   groupId   Int
   nickname  String
   password  String
@@ -82,7 +83,7 @@ model Record {
   photos        String[]
   participant   Participant @relation(fields: [participantId], references: [id])
   participantId Int
-  group         Group @relation(fields: [groupId], references: [id])
+  group         Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
   groupId       Int
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
