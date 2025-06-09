@@ -8,6 +8,7 @@ import recordRouter from './routes/record.js';
 
 // route 가져오기
 import groupRouter from './routes/group.js';
+import tagRouter from './routes/tag.js';
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -25,7 +26,8 @@ app.use(express.static(join(__dirname, 'public')));
 console.log('▶▶▶ app.js: groupRouter 연결 직전');
 
 // route 사용
-app.use('/groups' , groupRouter );
+app.use('/groups', groupRouter);
+app.use('/tags', tagRouter);
 
 
 console.log('▶▶▶ app.js: groupRouter 연결 완료');
