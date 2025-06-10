@@ -13,7 +13,7 @@ import groupRouter from './routes/group.js';
 import recordRouter from './routes/record.js';
 import imageRouter from './routes/image.js';
 import tagRouter from './routes/tag.js';
-
+import rankRouter from './routes/rank.js';
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -37,9 +37,17 @@ app.use(express.static(join(__dirname, 'public')));
 
 app.use('/image' , imageRouter);
 app.use('/groups' , groupRouter );
-app.use('/record' , recordRouter);
-app.use('/groups', groupRouter);
+app.use('/' , recordRouter);
 app.use('/tags', tagRouter);
+app.use('/rank', rankRouter);
+
+
+
+
+app.use((err, req, res, next) => {
+console.error(err.stack);
+return res.status(500).json({ message: 'Server Error'})
+})
 
 
 

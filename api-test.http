@@ -3,6 +3,7 @@
 
 
 # 그룹 image 업로드 
+# postman 으로 업로드 
 
 POST http://localhost:3000/image/upload
 
@@ -82,3 +83,55 @@ Content-Type: application/json
 #태그 상세 조회 
 GET http://localhost:3000/tags/2
 Content-Type: application/json
+
+
+
+### Record 생성 (POST)
+POST http://localhost:3000/groups/1/participants/2/records
+Content-Type: application/json
+
+{
+  "exerciseType": "running",
+  "description": "추가 ",
+  "time": 3500,
+  "distance": 12500,
+  "photos": ["https://example.com/pic.jpg"]
+}
+
+### 1) 그룹 내 모든 Record 조회 (GET)
+GET http://localhost:3000/groups/2/records?page=1&limit=10
+
+### 2) 특정 참여자의 Record 조회 (GET)
+GET http://localhost:3000/groups/2/participants/1/records
+
+### 3) 단일 Record 조회 (GET)
+GET http://localhost:3000/groups/1/participants/1/records/1
+
+### 4) Record 삭제 (DELETE)
+DELETE http://localhost:3000/groups/1/participants/1/records/1
+
+
+
+
+
+
+
+
+###
+# const { calculateRank } = require('./rankService');
+
+# test('점수 높은 순으로 정렬 + 랭크 부여 확인', () => {
+#   const input = [
+#     { consumer_name: 'A', score: 10 },
+#     { consumer_name: 'B', score: 30 },
+#     { consumer_name: 'C', score: 20 },
+#   ];
+
+#   const result = calculateRank(input);
+
+#   expect(result); ([
+#     { rank: 1, consumer_name: 'B', score: 30 },
+#     { rank: 2, consumer_name: 'C', score: 20 },
+#     { rank: 3, consumer_name: 'A', score: 10 },
+#   ]);
+# });
