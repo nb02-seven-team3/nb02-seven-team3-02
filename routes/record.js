@@ -1,21 +1,21 @@
 // routes/record.js
 import express from 'express';//웹 서버 라우팅 및 핸들러 정의
-import multer from 'multer';//
+// import multer from 'multer';//
 import { db } from '../utils/db.js';// 데이터베이스(DB) 연결
 import axios from 'axios';// Discord 알림
 
 const router = express.Router();
 
-// Multer 설정: uploads/ 폴더에 저장, 파일명은 원본 + 타임스탬프
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'uploads/'),//upload 폴더에 저장
-  filename: (req, file, cb) => {
-    const ext = file.originalname.split('.').pop();
-    const name = `${Date.now()}-${Math.random().toString(36).substr(2, 6)}.${ext}`;
-    cb(null, name);//파일 이름 어떻게 지을지
-  },
-});
-const upload = multer({ storage });
+// // Multer 설정: uploads/ 폴더에 저장, 파일명은 원본 + 타임스탬프
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => cb(null, 'uploads/'),//upload 폴더에 저장
+//   filename: (req, file, cb) => {
+//     const ext = file.originalname.split('.').pop();
+//     const name = `${Date.now()}-${Math.random().toString(36).substr(2, 6)}.${ext}`;
+//     cb(null, name);//파일 이름 어떻게 지을지
+//   },
+// });
+// const upload = multer({ storage });
 
 /**
  * POST /groups/:groupId/participants/:participantId/records
@@ -32,11 +32,12 @@ router.post(
 
 
       // 운동 종류 러닝, 사이클링,수영 으로 제한
-const allowedTypes = ['러닝', '사이클링', '수영'];
+      const allowedTypes = ['러닝', '사이클링', '수영'];
       if (!allowedTypes.includes(exerciseType)) {
         return res
           .status(400)
-          .json({ message: `Invalid exerciseType. Allowed: ${allowedTypes.join(', ')}` });}
+          .json({ message: `Invalid exerciseType. Allowed: ${allowedTypes.join(', ')}` });
+      }
 
 
       //  사용자 검증  
@@ -62,8 +63,8 @@ const allowedTypes = ['러닝', '사이클링', '수영'];
           time: Number(time), //시간
           distance: Number(distance),// 거리
           photos: photoFilenames,  // photos 필드: string[]
-          group:      { connect: { id: Number(groupId) } },//groupId 값을 이용해 해당 그룹 레코드로 설정
-          participant:{ connect: { id: Number(participantId) } },//participantId 값을 이용해 작성자 정보 연결
+          group: { connect: { id: Number(groupId) } },//groupId 값을 이용해 해당 그룹 레코드로 설정
+          participant: { connect: { id: Number(participantId) } },//participantId 값을 이용해 작성자 정보 연결
         },
       });
 

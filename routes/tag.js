@@ -3,7 +3,7 @@ import { db } from '../utils/db.js';
 const router = express.Router();
 
 // tag 목록 조회
-router.get('/list', async (req, res, next) => {
+router.get('/', async (req, res, next) => {
     let orderBy;
     const { offset = 0, limit = 10, order = 'newest' } = req.query;
     switch (order) {
@@ -14,10 +14,9 @@ router.get('/list', async (req, res, next) => {
         default:
             orderBy = { createdAt: 'desc' };
     };
-
     try {
         const tagsList = await db.tag.findMany({
-           
+
             orderBy,
             skip: parseInt(offset),
             take: parseInt(limit),
@@ -39,8 +38,8 @@ router.get('/:id', async (req, res, next) => {
     try {
         const id = Number(req.params.id);
         if (isNaN(id)) {
-          return res.status(400).json({ message: 'Invalid id parameter' });
-    }
+            return res.status(400).json({ message: 'Invalid id parameter' });
+        }
         const tag = await db.tag.findUnique({
             where: { id },
             select: {
@@ -61,37 +60,37 @@ router.get('/:id', async (req, res, next) => {
 
 
 
-// tag 생성 
-router.post('/', async (req, res, next) => {
-    try {
-        const { name } = req.body;
+// // tag 생성 
+// router.post('/', async (req, res, next) => {
+//     try {
+//         const { name } = req.body;
 
-        // name이 없거나 빈 문자열인 경우 처리
-        if (!name || typeof name !== 'string' || name.trim() === '') {
-            return res.status(400).json({ message: "Tag name connot be empty" });
-        }
+//         // name이 없거나 빈 문자열인 경우 처리
+//         if (!name || typeof name !== 'string' || name.trim() === '') {
+//             return res.status(400).json({ message: "Tag name connot be empty" });
+//         }
 
-        // tag가 데이터베이스에 존재하는지 확인
-        const existingTag = await db.tag.findUnique({
-            where: { name: name.trim() },
-        });
+//         // tag가 데이터베이스에 존재하는지 확인
+//         const existingTag = await db.tag.findUnique({
+//             where: { name: name.trim() },
+//         });
 
-        if (existingTag) {
-            console.log(`Tag ${name.trim()} already exists`);
-            return res.status(409).json({ message: "Tag already exists" });
-        }
+//         if (existingTag) {
+//             console.log(`Tag ${name.trim()} already exists`);
+//             return res.status(409).json({ message: "Tag already exists" });
+//         }
 
-        // tag가 존재하지 않으면 새로 생성
-        const newTag = await db.tag.create({
-            data: { name: name.trim() },
-        })
-        console.log(`Tag ${newTag.name} created successfully`);
-        res.status(201).json(newTag);
-    } catch (error) {
-        console.error('Error creating tag:', error);
-        next(error);
-    }
-});
+//         // tag가 존재하지 않으면 새로 생성
+//         const newTag = await db.tag.create({
+//             data: { name: name.trim() },
+//         })
+//         console.log(`Tag ${newTag.name} created successfully`);
+//         res.status(201).json(newTag);
+//     } catch (error) {
+//         console.error('Error creating tag:', error);
+//         next(error);
+//     }
+// });
 
 // // tag 삭제 
 // router.delete('/:id', async (req, res, next) => {
