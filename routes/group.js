@@ -391,8 +391,10 @@ router.patch('/:id', async (req, res, next) => {
           groupTags: {
             select: {
               tag: {
-                id: true,
-                name: true,
+                select: {
+                  id: true,
+                  name: true,
+                }
               },
             },
           },
