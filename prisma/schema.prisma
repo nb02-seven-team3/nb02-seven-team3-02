@@ -1,4 +1,3 @@
-
 // This is your Prisma schema file,Add commentMore actions
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
@@ -29,11 +28,12 @@ model Tag {
   id        Int        @id @default(autoincrement())
   name      String     @unique
   groupTags GroupTag[]
+  createdAt DateTime   @default(now())
 }
 
 model Group {
-  id                 Int          @id @default(autoincrement())
-  ownerParticipant   Participant? @relation("GroupOwner", fields: [ownerParticipantId], references: [id], onDelete: Cascade )
+  id                 Int           @id @default(autoincrement())
+  ownerParticipant   Participant?  @relation("GroupOwner", fields: [ownerParticipantId], references: [id], onDelete: Cascade)
   ownerParticipantId Int?
   ownerNickname      String
   ownerPassword      String
@@ -44,13 +44,12 @@ model Group {
   discordWebhookUrl  String
   discordInviteUrl   String
   badges             String[]
-  likeCount          Int
-  createdAt          DateTime     @default(now()) 
-  updatedAt          DateTime     @updatedAt
-
-  participants Participant[]
-  groupTags    GroupTag[]
-  records      Record[]
+  likeCount          Int           @default(0)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  participants       Participant[]
+  groupTags          GroupTag[]
+  records            Record[]
 }
 
 model GroupTag {
@@ -62,21 +61,20 @@ model GroupTag {
 }
 
 model Participant {
-  id        Int      @id @default(autoincrement())
-  group     Group    @relation( fields: [groupId], references: [id], onDelete: Cascade)
-  groupId   Int
-  nickname  String
-  password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  id          Int      @id @default(autoincrement())
+  group       Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  groupId     Int
+  nickname    String
+  password    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
   records     Record[]
   ranks       Rank[]
-  groupsOwned Group[] @relation("GroupOwner")
+  groupsOwned Group[]  @relation("GroupOwner")
 }
 
 model Record {
-  id            Int    @id @default(autoincrement())
+  id            Int         @id @default(autoincrement())
   exerciseType  String
   description   String
   time          Int
@@ -84,14 +82,14 @@ model Record {
   photos        String[]
   participant   Participant @relation(fields: [participantId], references: [id])
   participantId Int
-  group         Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  group         Group       @relation(fields: [groupId], references: [id], onDelete: Cascade)
   groupId       Int
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 }
 
 model Rank {
-  id            Int    @id @default(autoincrement())
+  id            Int         @id @default(autoincrement())
   participant   Participant @relation(fields: [participantId], references: [id])
   participantId Int
   recordCount   Int
