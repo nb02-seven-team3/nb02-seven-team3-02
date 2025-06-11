@@ -19,7 +19,7 @@ app.use(express.urlencoded({ extended: false }));
 // route 사용
 app.use('/groups', groupRouter);
 app.use('/', participantRouter);
-app.use('/', recordRouter);
+app.use('/groups/:groupId/records', recordRouter);
 app.use('/image', imageRouter);
 app.use('/tags', tagRouter);
 app.use('/rank', rankRouter);
