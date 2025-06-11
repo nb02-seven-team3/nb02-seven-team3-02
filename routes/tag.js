@@ -16,7 +16,6 @@ router.get('/', async (req, res, next) => {
     };
     try {
         const tagsList = await db.tag.findMany({
-
             orderBy,
             skip: parseInt(offset),
             take: parseInt(limit),
@@ -33,10 +32,12 @@ router.get('/', async (req, res, next) => {
 });
 
 
-// tag 개별 상세 조회 
+//tag 개별 상세 조회 
 router.get('/:id', async (req, res, next) => {
     try {
         const id = Number(req.params.id);
+
+        //id가 number가 아니라면 에러 반환 
         if (isNaN(id)) {
             return res.status(400).json({ message: 'Invalid id parameter' });
         }
@@ -47,6 +48,8 @@ router.get('/:id', async (req, res, next) => {
                 name: true,
             }
         })
+
+        //tag 존재 확인
         if (!tag) {
             return res.status(404).json({ message: "Cannot find given tag" })
         }
@@ -91,8 +94,6 @@ router.get('/:id', async (req, res, next) => {
 //         next(error);
 //     }
 // });
-
-export default router
 
 // // tag 삭제 
 // router.delete('/:id', async (req, res, next) => {
