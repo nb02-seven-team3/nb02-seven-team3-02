@@ -12,7 +12,7 @@ const router = express.Router();
 // 페이지네이션 기능 10개씩 데이터 출력
 // 그룹 name 으로 검색 가능 ex) /groups/list?order=createdAt&name=그룹이름
 // _count는 내장함수로 participant 수를 계산해줌, 후에 participant api완성되면 바꿀 예정
-router.get('/list', async (req, res, next) => {
+router.get('/', async (req, res, next) => {
   try {
     const { name = '', offset = 0, limit = 10, order = 'createdAt' } = req.query;
     let orderBy;
@@ -65,7 +65,7 @@ router.get('/list', async (req, res, next) => {
   }
 });
 
- 
+
 
 // 그룹 상세조회 /groups/:groupId
 // select로 원하는 필드만 나타남
@@ -139,7 +139,7 @@ router.post('/:id/likes', async (req, res, next) => {
 // /groups/그룹id/likes/remove 로 delete요청
 // 그룹의 likeCount가 어떤지 보기위해 findUnique 후 likeCount >= 0 일 때까지만 줄어들도록 수정 
 
-router.delete('/:id/likes/remove', async (req, res, next) => {
+router.delete('/:id/likes', async (req, res, next) => {
   try {
     const id = Number(req.params.id);
     const group = await db.group.findUnique({
@@ -285,7 +285,7 @@ router.post('/', async (req, res, next) => {
 // 그룹 수정 /groups/change/:groupId
 // 프론트엔드 페이지에서 보여진 사항만 수정
 // 클라이언트가 입력한 password가 그룹 생성시에 작성된 ownerpassword와 같을 시에만 수정 가능 
-router.patch('/change/:id', async (req, res, next) => {
+router.patch('/:id', async (req, res, next) => {
   try {
     const id = Number(req.params.id);
     let {
@@ -408,7 +408,7 @@ router.patch('/change/:id', async (req, res, next) => {
 
 // 그룹 삭제 API /groups/remove/:groupId
 // 그룹 수정과 같은 방식 
-router.delete('/remove/:id', async (req, res, next) => {
+router.delete('/:id', async (req, res, next) => {
   try {
     const id = Number(req.params.id);
     const { ownerPassword: enterPassword } = req.body;
