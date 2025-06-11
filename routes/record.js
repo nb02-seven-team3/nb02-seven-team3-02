@@ -1,21 +1,12 @@
 // routes/record.js
+
 import express from 'express';//웹 서버 라우팅 및 핸들러 정의
-import multer from 'multer';//
 import { db } from '../utils/db.js';// 데이터베이스(DB) 연결
 import axios from 'axios';// Discord 알림
 
 const router = express.Router();
 
-// Multer 설정: uploads/ 폴더에 저장, 파일명은 원본 + 타임스탬프
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'uploads/'),//upload 폴더에 저장
-  filename: (req, file, cb) => {
-    const ext = file.originalname.split('.').pop();
-    const name = `${Date.now()}-${Math.random().toString(36).substr(2, 6)}.${ext}`;
-    cb(null, name);//파일 이름 어떻게 지을지
-  },
-});
-const upload = multer({ storage });
+
 
 /**
  * POST /groups/:groupId/participants/:participantId/records
@@ -28,7 +19,7 @@ router.post(
     try {
       const { groupId, participantId } = req.params; // 그룹참가자 ID 추출
       const { nickname, password, exerciseType, description, time, distance } = req.body; //운동기록
-      const files = req.files || [];//업로드 된 파일 목록록
+      const files = req.files || [];//업로드 된 파일 목록
 
 
       // 운동 종류 러닝, 사이클링,수영 으로 제한
