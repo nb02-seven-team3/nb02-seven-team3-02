@@ -9,7 +9,7 @@ const debug = debugLib('nb02-seven-team3-02:server');
 /**
  * Get port from environment and store in Express.
  */
-const port = normalizePort(process.env.PORT || '3000');
+const port = normalizePort(process.env.PORT || '3001');
 app.set('port', port);
 
 /**
@@ -69,6 +69,6 @@ function onError(error) {
 function onListening() {
   const addr = server.address();
   const bind = typeof addr === 'string' ? 'pipe ' + addr : 'port ' + addr.port;
-  console.log('Listening on ' + bind); 
+  console.log('Listening on ' + bind);
   debug('Listening on ' + bind);
 }
