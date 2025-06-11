@@ -2,31 +2,79 @@ import express from 'express';
 import { db } from '../utils/db.js';
 const router = express.Router({ mergeParams: true });
 
-
-// == 참가자(Participant) API 목록 ==
-
-// 1. 그룹 참여 API (POST /)
-// 1. groupId, nickname, password 정보 가져오기(o)
-// 2. 그룹 존재 여부, 닉네임 중복 등 유효성 검사
-// 3. DB에 새로운 참여자 생성
-// 4. 성공 결과 응답
-// API 주소: POST /groups/:groupId/participants
 router.post('/', async (req, res, next) => {
+  try {
+    const groupId = Number(req.params.groupId);
+    const { nickname, password } = req.body;
+
+    //groupId 유효성 검사
+    if (isNaN(groupId)) {
+      return res.status(400).json({ message: 'Invalid groupId' });
+    }
+
+    //닉네임 중복 확인
+    const nicknameChecker = await db.participant.findFirst({
+      where: {
+        groupId: groupId,
+        nickname: nickname
+      }
+    });
+
+    //닉네임 중복 시 에러처리
+    if (nicknameChecker) {
+      return res.status(409).json({ message: "Nickname already exists in this group." })
+    }
+
+    //참가자 생성
+    const participant = await db.participant.create({
+      data: {
+        nickname,
+        password,
+        group: {
+          connect: {
+            id: groupId
+          }
+        }
+      },
+    });
+    return res.status(201).json(participant)
+  } catch (error) {
+    console.log('Error creating participant:', error);
+    next(error);
+  }
+});
+
+router.delete('/:groupId/participants', async (req, res, next) => {
     try {
         const { groupId } = req.params;
         const { nickname, password } = req.body;
-        const participant = await db.participant.create({
-            data: {
-                groupId,
-                nickname,
-                password
-            },
+
+        // 참여자 존재 여부, 비밀번호 일치 등 유효성 검사
+         if (!nickname || !password) {
+            return res.status(412).json({ message: '데이터 형식이 올바르지 않습니다.' });
+        }
+         const participant = await db.participant.findFirst({
+            where: { 
+                groupId: Number(groupId),
+                nickname: nickname 
+            }
         });
-        return res.status(201).json(participant)
+           if (!participant || participant.password !== password) {
+            return res.status(404).json({ message: '참여자가 존재하지 않거나 비밀번호가 일치하지 않습니다.' });
+        }
+
+         // DB에서 참여자 및 관련 기록 삭제 (트랜잭션)
+        await db.participant.delete({
+            where: { id: participant.id },
+        });
+        
+        // 성공 결과 응답
+        return res.status(200).json({ message: '그룹에서 정상적으로 탈퇴되었습니다.' });
     } catch (error) {
-        console.log(error);
+        console.error(error);
         next(error);
     }
 });
+
 
 export default router;
