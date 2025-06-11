@@ -44,4 +44,37 @@ router.post('/', async (req, res, next) => {
   }
 });
 
+router.delete('/:groupId/participants', async (req, res, next) => {
+    try {
+        const { groupId } = req.params;
+        const { nickname, password } = req.body;
+
+        // 참여자 존재 여부, 비밀번호 일치 등 유효성 검사
+         if (!nickname || !password) {
+            return res.status(412).json({ message: '데이터 형식이 올바르지 않습니다.' });
+        }
+         const participant = await db.participant.findFirst({
+            where: { 
+                groupId: Number(groupId),
+                nickname: nickname 
+            }
+        });
+           if (!participant || participant.password !== password) {
+            return res.status(404).json({ message: '참여자가 존재하지 않거나 비밀번호가 일치하지 않습니다.' });
+        }
+
+         // DB에서 참여자 및 관련 기록 삭제 (트랜잭션)
+        await db.participant.delete({
+            where: { id: participant.id },
+        });
+        
+        // 성공 결과 응답
+        return res.status(200).json({ message: '그룹에서 정상적으로 탈퇴되었습니다.' });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+});
+
+
 export default router;
