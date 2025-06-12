@@ -1,32 +1,28 @@
 import express from 'express';
 import path from 'path';
-import cookieParser from 'cookie-parser';
 import logger from 'morgan';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-import recordRouter from './routes/record.js';
 
 // route 가져오기
 import groupRouter from './routes/group.js';
-
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+import imageRouter from './routes/image.js';
+import tagRouter from './routes/tag.js';
 
 const app = express();
-
-app.use('/', recordRouter);
-app.use(logger('dev'));
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(join(__dirname, 'public')));
 
-console.log('▶▶▶ app.js: groupRouter 연결 직전');
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+app.use(logger('dev'));
+app.use(express.urlencoded({ extended: false }));
 
 // route 사용
-app.use('/groups' , groupRouter );
+app.use('/groups', groupRouter);
+app.use('/images', imageRouter);
+app.use('/tags', tagRouter);
 
+//global error handler
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    return res.status(500).json({ message: 'Server Error' })
+})
 
-console.log('▶▶▶ app.js: groupRouter 연결 완료');
 export default app;
