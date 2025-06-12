@@ -4,23 +4,19 @@ import logger from 'morgan';
 
 // route 가져오기
 import groupRouter from './routes/group.js';
-import recordRouter from './routes/record.js';
 import imageRouter from './routes/image.js';
 import tagRouter from './routes/tag.js';
-// import rankRouter from './routes/rank.js';
-import participantRouter from './routes/participant.js';
 
 const app = express();
+app.use(express.json());
+
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 app.use(logger('dev'));
-app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // route 사용
 app.use('/groups', groupRouter);
-app.use('/groups/:groupId/participants', participantRouter);
-app.use('/groups/:groupId/participants/:participantId/records', recordRouter);
-app.use('/image', imageRouter);
+app.use('/images', imageRouter);
 app.use('/tags', tagRouter);
 
 //global error handler
