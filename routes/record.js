@@ -59,15 +59,17 @@ router.post(
       const photos = files.map(f => f.filename);
 
       // DB에 기록 저장
-      const newRecord = await db.record.create({ data: {
-        exerciseType,
-        description,
-        time: Number(time),
-        distance: Number(distance),
-        photos,
-        group: { connect: { id: groupId } },
-        participant: { connect: { id: participantId } }
-      }});
+      const newRecord = await db.record.create({
+        data: {
+          exerciseType,
+          description,
+          time: Number(time),
+          distance: Number(distance),
+          photos,
+          group: { connect: { id: groupId } },
+          participant: { connect: { id: participantId } }
+        }
+      });
 
       // Discord 웹훅 알림 (웹훅 URL이 설정된 경우)
       const grp = await db.group.findUnique({
