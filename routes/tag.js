@@ -2,66 +2,12 @@ import express from 'express';
 import { db } from '../utils/db.js';
 const router = express.Router();
 
-// tag 목록 조회
-router.get('/', async (req, res, next) => {
-    let orderBy;
-    const { offset = 0, limit = 10, order = 'newest' } = req.query;
-    switch (order) {
-        case 'older':
-            orderBy = { createdAt: 'asc' };
-            break;
-        case 'newest':
-        default:
-            orderBy = { createdAt: 'desc' };
-    };
-    try {
-        const tagsList = await db.tag.findMany({
-            orderBy,
-            skip: parseInt(offset),
-            take: parseInt(limit),
-            select: {
-                id: true,
-                name: true,
-            }
-        });
-        res.status(200).json(tagsList);
-    } catch (error) {
-        console.error('Error fetching tags:', error);
-        next(error);
-    }
-});
+import { TagController } from '../controller/tagController.js';
 
+const tagController = new TagController(db);
 
-//tag 개별 상세 조회 
-router.get('/:id', async (req, res, next) => {
-    try {
-        const id = Number(req.params.id);
-
-        //id가 number가 아니라면 에러 반환 
-        if (isNaN(id)) {
-            return res.status(400).json({ message: 'Invalid id parameter' });
-        }
-        const tag = await db.tag.findUnique({
-            where: { id },
-            select: {
-                id: true,
-                name: true,
-            }
-        })
-
-        //tag 존재 확인
-        if (!tag) {
-            return res.status(404).json({ message: "Cannot find given tag" })
-        }
-        res.status(200).json(tag);
-    }
-    catch (error) {
-        console.error('Error fetching tag:', error);
-        next(error);
-    }
-})
-
-
+router.get('/', tagController.getTagList.bind(tagController));
+router.get('/:id', tagController.getTag.bind(tagController));
 
 // // tag 생성 
 // router.post('/', async (req, res, next) => {
