@@ -1,6 +1,7 @@
 import express from 'express';
 import { db } from '../utils/db.js';
 import { error, group } from 'console';
+import { create } from 'domain';
 const router = express.Router();
 
 
@@ -29,6 +30,15 @@ router.get('/', async (req, res, next) => {
     }
     console.log('orderBy:', orderBy);
 
+    const total = await db.group.count({
+      where: {
+        name: {
+          contains: name,
+          mode: 'insensitive',
+        },
+      },
+    });
+
     const groupList = await db.group.findMany({
       where: {
         name: {
@@ -40,25 +50,78 @@ router.get('/', async (req, res, next) => {
       select: {
         id: true,
         name: true,
+        description: true,
         photoUrl: true,
-        groupTags: true,
         goalRep: true,
+        discordWebhookUrl: true,
+        discordInviteUrl: true,
         likeCount: true,
-        _count: {
-          select: { participants: true }
+        createdAt: true,
+        updatedAt: true,
+        badges: true,
+        groupTags: {
+          include: {
+            tag: true,
+          },
+        },
+        ownerParticipant: {
+          select: {
+            id: true,
+            nickname: true,
+            createdAt: true,
+            updatedAt: true,
+          },
         },
         participants: {
           select: {
-            nickname: true
-          }
+            id: true,
+            nickname: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
+        _count: {
+          select: { participants: true }
         },
       },
       orderBy,
       skip: offset,
-      take: limit
-
+      take: limit,
     });
-    res.json(groupList);
+    const formatList = groupList.map((list) => ({
+      id: list.id,
+      name: list.name,
+      description: list.description,
+      photoUrl: list.photoUrl,
+      goalRep: list.goalRep,
+      discordWebhookUrl: list.discordWebhookUrl,
+      discordInviteUrl: list.discordInviteUrl,
+      likeCount: list.likeCount,
+      tags: list.groupTags.map((gt) => gt.tag?.name ?? ''), // tag 객체 포함되어야 함
+      owner: list.ownerParticipant
+        ? {
+          id: list.ownerParticipant.id,
+          nickname: list.ownerParticipant.nickname,
+          createdAt: list.ownerParticipant.createdAt,
+          updatedAt: list.ownerParticipant.updatedAt,
+        }
+        : null,
+      participants: list.participants.map((p) => ({
+        id: p.id,
+        nickname: p.nickname,
+        createdAt: p.createdAt,
+        updatedAt: p.updatedAt,
+      })),
+      createdAt: list.createdAt,
+      updatedAt: list.updatedAt,
+      badges: list.badges ?? []
+
+    }));
+
+    res.json({
+      data: formatList,
+      total,
+    })
   } catch (e) {
     console.log(e);
     next(e);
@@ -73,33 +136,79 @@ router.get('/:id', async (req, res, next) => {
   try {
     const id = Number(req.params.id);
     const groupDetail = await db.group.findUnique({
-      where: {
-        id: id
-      },
+      where: { id },
       select: {
         id: true,
         name: true,
         description: true,
+        photoUrl: true,
+        goalRep: true,
+        discordWebhookUrl: true,
+        discordInviteUrl: true,
+        likeCount: true,
+        badges: true,
+        createdAt: true,
+        updatedAt: true,
+        groupTags: {
+          include: {
+            tag: true,
+          }
+        },
+        ownerParticipant: {
+          select: {
+            id: true,
+            nickname: true,
+            createdAt: true,
+            updatedAt: true,
+          }
+        },
         participants: {
           select: {
-            nickname: true
-          },
+            id: true,
+            nickname: true,
+            createdAt: true,
+            updatedAt: true,
+          }
         },
-        likeCount: true,
-        photoUrl: true,
-        _count: {
-          select: {
-            participants: true
-          },
-        },
-        discordInviteUrl: true
       }
     });
     if (!groupDetail) {
       res.status(404).json({ message: "Group not found" })
-    } else {
-      res.json(groupDetail);
     }
+    const formatDetail = {
+      id: groupDetail.id,
+      name: groupDetail.name,
+      description: groupDetail.description,
+      photoUrl: groupDetail.photoUrl,
+      goalRep: groupDetail.goalRep,
+      discordWebhookUrl: groupDetail.discordWebhookUrl,
+      discordInviteUrl: groupDetail.discordInviteUrl,
+      likeCount: groupDetail.likeCount,
+      tags: groupDetail.groupTags.map(gt => gt.tag?.name ?? ''),
+      owner: groupDetail.ownerParticipant
+        ? {
+          id: groupDetail.ownerParticipant.id,
+          nickname: groupDetail.ownerParticipant.nickname,
+          createdAt: groupDetail.ownerParticipant.createdAt,
+          updatedAt: groupDetail.ownerParticipant.updatedAt,
+        }
+        : null,
+      participants: groupDetail.participants.map(p => ({
+        id: p.id,
+        nickname: p.nickname,
+        createdAt: p.createdAt,
+        updatedAt: p.updatedAt,
+      })),
+      createdAt: groupDetail.createdAt,
+      updatedAt: groupDetail.updatedAt,
+      badges: groupDetail.badges ?? [],
+    };
+
+    res.json(formatDetail);
+
+
+
+
   } catch (e) {
     console.log(e);
     next(e);
@@ -179,26 +288,24 @@ router.post('/', async (req, res, next) => {
     let {
       name,
       description,
-      ownerNickname,
-      ownerPassword,
       photoUrl,
-      tags = [],
       goalRep,
       discordWebhookUrl,
       discordInviteUrl,
+      tags = [],
+      ownerNickname,
+      ownerPassword,
     } = req.body;
 
-
-    // goalRep 정수가 아닐시에 오류처리 
     if (!Number.isInteger(goalRep)) {
       return res.status(400).json({ message: "goalRep must be an integer" });
     }
 
+    let finalGroupId;
+    let ownerParticipantId;
 
-    // ─────── Prisma 트랜잭션 시작 ───────
-    const createdGroup = await db.$transaction(async (tx) => {
-      // 1) Group 생성
-      //    - ownerParticipantId는 Int? (nullable) 상태이므로 생략 가능
+    await db.$transaction(async (tx) => {
+      // 1. 그룹 생성
       const newGroup = await tx.group.create({
         data: {
           name,
@@ -207,39 +314,32 @@ router.post('/', async (req, res, next) => {
           goalRep,
           discordWebhookUrl,
           discordInviteUrl,
-          badges: [],       // String[] 타입
-          likeCount: 0,     // Int 타입
-          ownerNickname,    // non-nullable 스칼라 필드
-          ownerPassword,    // non-nullable 스칼라 필드
-          // ownerParticipantId 생략 (null)
+          badges: [],
+          likeCount: 0,
+          ownerNickname,
+          ownerPassword,
         },
       });
+      finalGroupId = newGroup.id;
 
-      // 2) Participant 생성 (groupId = newGroup.id)
+      // 2. 그룹 소유자 참여자 생성
       const newParticipant = await tx.participant.create({
         data: {
           nickname: ownerNickname,
           password: ownerPassword,
           groupId: newGroup.id,
-          // 이 한 줄이 “participant.groupId = newGroup.id” 역할
         },
       });
+      ownerParticipantId = newParticipant.id;
 
-      // 3) tag & groupTag 연결
-      // tag 유효성 검사 
-      if (tags && tags.length > 0) {
+      // 3. 태그 처리
+      if (tags.length > 0) {
         const groupTagsToConnect = [];
         for (const tagName of tags) {
-
-          // 태그 이름 유효성 검사 (문자열인지 확인, 빈 문자열이 아닌지 확인)
           if (typeof tagName !== 'string' || tagName.trim() === '') {
             throw new Error(`Invalid tag name provided: '${tagName}'.`);
           }
 
-          /* 해당 태그가 이미 존재하는지 확인 
-          이미 존재한다면 update는 빈 객체,
-          존재하지 않는다면 새로운 tag 생성 
-          고유 tag.id 확보*/
           const tag = await tx.tag.upsert({
             where: { name: tagName.trim() },
             update: {},
@@ -248,34 +348,63 @@ router.post('/', async (req, res, next) => {
           groupTagsToConnect.push({ tagId: tag.id });
         }
 
-        // 생성하는 group에 groupTag 관계 연결 
         await tx.group.update({
           where: { id: newGroup.id },
           data: {
             groupTags: {
-              create: groupTagsToConnect
+              create: groupTagsToConnect,
             },
           },
         });
       }
 
-      // 4) Group 업데이트 (ownerParticipantId = newParticipant.id)
-      const updatedGroup = await tx.group.update({
+      // 4. 그룹에 ownerParticipantId 설정
+      await tx.group.update({
         where: { id: newGroup.id },
-        data: {
-          ownerParticipantId: newParticipant.id,
-        },
+        data: { ownerParticipantId },
       });
-
-
-
-
-      // 최종적으로 “ownerParticipantId가 채워진” Group 객체를 반환
-      return updatedGroup;
     });
-    // ─────── Prisma 트랜잭션 끝 ───────
 
-    return res.json(createdGroup);
+    // 최종 그룹 정보 조회 및 응답 구성
+    const group = await db.group.findUnique({
+      where: { id: finalGroupId },
+      include: {
+        participants: true,
+        groupTags: {
+          include: { tag: true }
+        },
+      },
+    });
+
+    const response = {
+      id: group.id,
+      name: group.name,
+      description: group.description,
+      photoUrl: group.photoUrl,
+      goalRep: group.goalRep,
+      discordWebhookUrl: group.discordWebhookUrl,
+      discordInviteUrl: group.discordInviteUrl,
+      likeCount: group.likeCount,
+      tags: group.groupTags.map(gt => gt.tag.name),
+      owner: {
+        id: ownerParticipantId,
+        nickname: group.ownerNickname,
+        createdAt: group.createdAt.getTime(),
+        updatedAt: group.updatedAt.getTime(),
+      },
+      participants: group.participants.map(p => ({
+        id: p.id,
+        nickname: p.nickname,
+        createdAt: new Date(p.createdAt).getTime(),
+        updatedAt: new Date(p.updatedAt).getTime(),
+      })),
+      badges: group.badges,
+      createdAt: new Date(group.createdAt).getTime(),
+      updatedAt: new Date(group.updatedAt).getTime()
+
+    };
+
+    return res.json(response);
   } catch (e) {
     console.error(e);
     return next(e);
@@ -295,7 +424,8 @@ router.patch('/:id', async (req, res, next) => {
       goalRep,
       discordWebhookUrl,
       discordInviteUrl,
-      tags,
+      tags = [] ,
+      ownerNickname,
       ownerPassword: enterPassword,
     } = req.body;
 
@@ -339,6 +469,9 @@ router.patch('/:id', async (req, res, next) => {
       }
       if (discordInviteUrl !== undefined) {
         changeData.discordInviteUrl = discordInviteUrl;
+      }
+      if(ownerNickname !== undefined){
+        changeData.ownerNickname = ownerNickname;
       }
 
       //그룹 정보 업데이트 
@@ -398,10 +531,46 @@ router.patch('/:id', async (req, res, next) => {
               },
             },
           },
+          ownerParticipant :{
+            select : { 
+              id : true,
+              nickname : true,
+              createdAt : true,
+              updatedAt : true,
+            }
+          },
+        participants: {
+            select: {
+              id: true,
+              nickname: true,
+              createdAt: true,
+              updatedAt: true,
+            }
+          },
+          
         },
       });
     });
-    return res.status(200).json(changedGroup);
+    const responseData = {
+      id: changedGroup.id,
+      name: changedGroup.name,
+      description: changedGroup.description,
+      photoUrl: changedGroup.photoUrl,
+      goalRep: changedGroup.goalRep,
+      discordWebhookUrl: changedGroup.discordWebhookUrl,
+      discordInviteUrl: changedGroup.discordInviteUrl,
+      likeCount: changedGroup.likeCount || 0,
+      tags: changedGroup.groupTags.map(gt => gt.tag.name),
+      owner: changedGroup.ownerParticipant,
+      participants: changedGroup.participants,
+      createdAt: changedGroup.createdAt.getTime(),
+      updatedAt: changedGroup.updatedAt.getTime(),
+      badges: changedGroup.badges || [],
+    }
+
+
+
+    return res.status(200).json(responseData);
   } catch (e) {
     console.log(e);
     next(e);

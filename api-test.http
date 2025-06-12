@@ -34,7 +34,7 @@ Content-Type: application/json
 
 ###
 # 그룹목록조회 
-GET http://localhost:3000/groups/list?order=likeCount&name=그룹룹g
+GET http://localhost:3000/groups
 Content-Type: application/json
 
 ###
@@ -52,8 +52,8 @@ DELETE  http://localhost:3000/groups/21/likes/remove
 
 
 ###
-
-PATCH  http://localhost:3000/groups/change/11
+#그룹 수정 
+PATCH  http://localhost:3000/groups/20
 Content-Type: application/json
 
 {
@@ -121,7 +121,7 @@ POST http://localhost:3000/groups/20/participants
 Content-Type: application/json
 
 {
-  "nickname" : "asddd",
+  "nickname" : "참여자수 ",
   "password" : "123123"
 }
 
