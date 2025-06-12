@@ -1,31 +1,10 @@
 import express from 'express';
-import path from 'path';
-import fs from 'fs';
-import multer from 'multer';
+import { upload } from '../utils/upload.js';
+import { ImageController } from '../controller/imageController.js';
+
 const router = express.Router();
-const uploadDir = path.join(process.cwd(), 'uploads');
+const imageController = new ImageController();
 
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir);
-};
-
-const upload = multer({ dest: uploadDir });
-
-router.post('/upload', upload.single('photo'), (req, res) => {
-  console.log('파일 정보:', req.file);
-  console.log('body:', req.body);
-
-  if (!req.file) {
-    return res.status(404).json({ message: "파일 없음" });
-  }
-  const filename = req.file.filename;
-  const fileUrl = `/uploads/${filename}`;
-
-  res.json({
-    message: '파일 업로드',
-    filename: req.file.filename,
-    url: fileUrl,
-  });
-});
+router.post('/', upload.single('photo'), imageController.uploadImage.bind(imageController))
 
 export default router;
