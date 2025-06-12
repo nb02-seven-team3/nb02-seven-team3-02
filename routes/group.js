@@ -243,8 +243,9 @@ router.delete('/remove/:id', async (req,res,next) =>{
  */
 router.get('/:groupId/rank', async (req, res, next) => {
   try {
-    // TODO: 그룹 ID 유효성 검사 추가
-    // TODO: groupId가 숫자인지 확인 - 아니면 400 "groupId must be integer"
+    // 완 그룹 ID 유효성 검사 추가
+    // 완 groupId가 숫자인지 확인 - 에러 반환, 클라이언트 전송 코드로 바꿈
+    // 위 부분 수정함!
     // Path 파라미터에서 groupId를 추출
     const groupId = Number(req.params.groupId);
     const validateGroupId = function (groupId) {
@@ -253,11 +254,27 @@ router.get('/:groupId/rank', async (req, res, next) => {
     throw new Error('유효하지 않은 groupId입니다.');
   }
 };
-    
+
+app.post('/api/group', (req, res) => {
+    const { groupId } = req.body;
+
+    // groupId가 정수가 아니면 에러를 반환합니다.
+    if (!Number.isInteger(groupId)) {
+        // 아래 줄은 400 Bad Request 상태와 에러 메시지를 클라이언트에게 전송합니다.
+        // "groupId must be integer"를 return합니다. -> 에러 전송송
+        return res.status(300).send('groupId must be an integer');
+    }
+
+    // groupId가 정수일 때 실행될 로직을 여기에 추가합니다.
+    res.status(200).send({ message: 'Group ID is valid', groupId });
+});
+
+
+
     400; "groupId must be integer"
     //그룹 유효성 검사란
 
-    // TODO: groupId가 유효한지 검사 (예: 존재하는 그룹인지 확인)
+    // 완 groupId가 유효한지 검사 (예: 존재하는 그룹인지 확인)
     // groupId 기준으로 랭킹 정보 조회
     const rows = await db.rank.findMany({
       where: { participant: { groupId } },
@@ -265,6 +282,7 @@ router.get('/:groupId/rank', async (req, res, next) => {
     });
 
     // API 명세서에 맞게 응답 형식 변환
+    //map을 사용하여 각 랭킹 정보를 변환 
     const ranks = rows.map((r) => ({
       participantId: r.participantId,
       nickname: r.participant.nickname,
