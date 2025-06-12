@@ -2,6 +2,7 @@ import express from 'express';
 import path from 'path';
 import logger from 'morgan';
 
+
 // route 가져오기
 import groupRouter from './routes/group.js';
 import recordRouter from './routes/record.js';
@@ -23,6 +24,7 @@ app.use('/groups/:groupId/participants/:participantId/records', recordRouter);
 app.use('/image', imageRouter);
 app.use('/tags', tagRouter);
 app.use('/groups/:groupId/rank', rankRouter);
+
 
 //global error handler
 app.use((err, req, res, next) => {
