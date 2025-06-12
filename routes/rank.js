@@ -1,7 +1,8 @@
 // routes/rankRouter.js
 import express from 'express';
+import { db } from '../utils/db.js';
 
-const router = express.Router();
+const router = express.Router({ mergeParams: true });
 
 // 랭크 데이터 예시
 const rankData = [
@@ -21,9 +22,23 @@ function calculateRank(data) {
   }));
 }
 
-// GET /rank - 정렬 안된 데이터
-router.get('/rank/raw', (req, res) => {
-  res.json(rankData);
+// GET /rank - participant id 가져와서 랭크 조회 
+router.get('/', async (req, res, next) => {
+    const groupId = Number(req.params.groupId);
+     const rankData = await db.rank.findMany({
+      where: {
+        participant: {
+          is: {
+            groupId: groupId,
+          },
+        },
+      },
+      include: {
+        participant: true,
+      },
+    });
+    
+    res.json(rankData);
 });
 
 // GET /rank - 정렬된 랭킹 반환

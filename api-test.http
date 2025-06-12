@@ -87,15 +87,15 @@ Content-Type: application/json
 
 
 ### Record 생성 (POST)
-POST http://localhost:3000/groups/1/participants/2/records
+POST http://localhost:3000/groups/20/participants/29/records
 Content-Type: application/json
 
 {
-  "exerciseType": "running",
+  "exerciseType": "수영" , 
   "description": "추가 ",
   "time": 3500,
   "distance": 12500,
-  "photos": ["https://example.com/pic.jpg"]
+  "photos": []
 }
 
 ### 1) 그룹 내 모든 Record 조회 (GET)
@@ -111,10 +111,19 @@ GET http://localhost:3000/groups/1/participants/1/records/1
 DELETE http://localhost:3000/groups/1/participants/1/records/1
 
 
+#참가자 그룹참여 
+###
+POST http://localhost:3000/groups/20/participants
+Content-Type: application/json
 
+{
+  "nickname" : "asddd",
+  "password" : "123123"
+}
 
-
-
+#랭크 조회 
+###
+GET http://localhost:3000/groups/1/rank
 
 
 ###

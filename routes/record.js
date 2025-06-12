@@ -1,6 +1,6 @@
 // routes/record.js
 import express from 'express';//웹 서버 라우팅 및 핸들러 정의
-// import multer from 'multer';//
+import multer from 'multer';//
 import { db } from '../utils/db.js';// 데이터베이스(DB) 연결
 import axios from 'axios';// Discord 알림
 
@@ -21,65 +21,75 @@ const router = express.Router();
  * POST /groups/:groupId/participants/:participantId/records
  * 운동 기록 등록 
  */
-router.post('/', upload.array('photos', 1), async (req, res, next) => {
-  try {
-    const { groupId, participantId } = req.params; // 그룹참가자 ID 추출
-    const { nickname, password, exerciseType, description, time, distance } = req.body; //운동기록
-    const files = req.files || [];//업로드 된 파일 목록록
+router.post('/', async (req, res, next) => {
+    try {
+      const groupId = Number(req.params.groupId);
+      const participantId = Number(req.params.participantId);
+      
+      const {    
+        exerciseType,
+        description,
+        time,
+        distance
+      } = req.body;
+      const files = req.files || [];
 
-    // 운동 종류 러닝, 사이클링,수영 으로 제한
-    const allowedTypes = ['러닝', '사이클링', '수영'];
-    if (!allowedTypes.includes(exerciseType)) {
-      return res
-        .status(400)
-        .json({ message: `Invalid exerciseType. Allowed: ${allowedTypes.join(', ')}` });
+      // // 운동 종류 검증
+      // if (!isValidExercise(exerciseType)) {
+      //   return res.status(400).json({
+      //     message: '운동 종류는 러닝, 사이클링, 수영만 가능합니다.'
+      //   });
+      // }
+
+      // 사용자 인증
+      // const participant = await authenticateParticipant(
+      //   participantId,
+      //   nickname,
+      //   password
+      // );
+      // if (!participant || participant.groupId !== groupId) {
+      //   return res.status(401).json({
+      //     message: '사용자 인증에 실패했습니다.'
+      //   });
+      // }
+
+      // 사진 파일명 배열
+      const photos = files.map((f) => f.filename);
+
+      // DB에 기록 저장
+      const newRecord = await db.record.create({
+        data: {
+          exerciseType,
+          description,
+          time: Number(time),
+          distance: Number(distance),
+          photos,
+          group: { connect: { id: groupId } },
+          participant: { connect: { id: participantId } }
+        }
+      });
+
+      // Discord 웹훅 알림 (웹훅 URL이 설정된 경우)
+      const grp = await db.group.findUnique({
+        where: { id: groupId },
+        select: { discordWebhookUrl: true }
+      });
+
+      if (grp?.discordWebhookUrl) {
+        axios
+          .post(grp.discordWebhookUrl, {
+            content: `새 운동 기록: 닉네임=${nickname}, 운동=${exerciseType}, 시간=${time}초, 거리=${distance}m`
+          })
+          .catch(console.error);
+      }
+
+      return res.status(201).json(newRecord);
+    } catch (err) {
+      return next(err);
     }
-
-    //  사용자 검증  
-    const participant = await db.participant.findUnique({
-      where: { id: Number(participantId) },
-      select: { nickname: true, password: true, groupId: true },
-    });
-    if (!participant || participant.groupId !== Number(groupId) || participant.nickname !== nickname) {
-      return res.status(401).json({ message: 'Invalid user.' });
-    }// 잘못된 ID인 경우
-    if (participant.password !== password) {
-      return res.status(401).json({ message: 'Wrong password.' });
-    }//잘못된 비밀번호인 경우
-
-    //  파일명 배열 생성
-    const photoFilenames = files.map(f => f.filename);
-
-    //  Record 생성
-    const newRecord = await db.record.create({
-      data: {
-        exerciseType, //운동 종류
-        description, // 설명
-        time: Number(time), //시간
-        distance: Number(distance),// 거리
-        photos: photoFilenames,  // photos 필드: string[]
-        group: { connect: { id: Number(groupId) } },//groupId 값을 이용해 해당 그룹 레코드로 설정
-        participant: { connect: { id: Number(participantId) } },//participantId 값을 이용해 작성자 정보 연결
-      },
-    });
-
-    // 4) 디스코드 알림
-    const group = await db.group.findUnique({
-      where: { id: Number(groupId) },
-      select: { discordWebhookUrl: true },// 해당 그룹의 Discord Webhook URL 조회
-    });
-    if (group?.discordWebhookUrl) {
-      axios.post(group.discordWebhookUrl, {
-        content: `새 운동 기록 등록\n닉네임: ${nickname}\n운동: ${exerciseType}\n시간: ${time}초\n거리: ${distance}m`,
-      }).catch(console.error);
-    }//URL이 존재하면 Discord로 알림전송 실패시 에러 출력
-
-    res.status(201).json(newRecord);// 새로 생성된 레코드를 클라이언트에 JSON 형식
-  } catch (err) {
-    next(err);
   }
-}
 );
+
 
 /**
  * GET /groups/:groupId/records
