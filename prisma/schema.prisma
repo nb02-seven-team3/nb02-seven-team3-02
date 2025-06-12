@@ -5,8 +5,8 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
-  output   = "../generated/prisma"
+  provider      = "prisma-client-js"
+  output        = "../generated/prisma"
   binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
@@ -65,7 +65,7 @@ model Participant {
   id          Int      @id @default(autoincrement())
   group       Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
   groupId     Int
-  nickname    String
+  nickname    String   @unique
   password    String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

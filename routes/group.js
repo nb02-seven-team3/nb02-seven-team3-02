@@ -391,8 +391,10 @@ router.patch('/:id', async (req, res, next) => {
           groupTags: {
             select: {
               tag: {
-                id: true,
-                name: true,
+                select: {
+                  id: true,
+                  name: true,
+                }
               },
             },
           },
@@ -442,7 +444,54 @@ router.delete('/:id', async (req, res, next) => {
   }
 });
 
+/**
+ * 그룹 내 참가자 랭킹 조회 API
+ * GET /groups/:groupId/rank
+ * 
+ * - 특정 그룹(groupId)의 참가자 랭킹 정보를 조회합니다.
+ * - 랭킹 정보는 rank 테이블에서 조회하며, 각 참가자의 닉네임, 기록 횟수(recordCount), 기록 시간(recordTime) 등을 반환합니다.
+ * - 반환 형식: [{ participantId, nickname, recordCount, recordTime }, ...]
+ * - 예시 응답:
+ *   [
+ *     { participantId: 1, nickname: "홍길동", recordCount: 5, recordTime: 1234 },
+ *     ...
+ *   ]
+ */
+router.get('/:groupId/rank', async (req, res, next) => {
+  try {
+    // TODO: 그룹 ID 유효성 검사 추가
+    // TODO: groupId가 숫자인지 확인 - 아니면 400 "groupId must be integer"
+    // Path 파라미터에서 groupId를 추출
+    const groupId = Number(req.params.groupId);
+    const validateGroupId = function (groupId) {
+      if (typeof groupId !== 'number' || !Number.isInteger(groupId) || groupId <= 0) {
+        throw new Error('유효하지 않은 groupId입니다.');
+      }
+    };
 
+    400; "groupId must be integer"
+    //그룹 유효성 검사란
+
+    // TODO: groupId가 유효한지 검사 (예: 존재하는 그룹인지 확인)
+    // groupId 기준으로 랭킹 정보 조회
+    const rows = await db.rank.findMany({
+      where: { participant: { groupId } },
+      include: { participant: true }
+    });
+
+    // API 명세서에 맞게 응답 형식 변환
+    const ranks = rows.map((r) => ({
+      participantId: r.participantId,
+      nickname: r.participant.nickname,
+      recordCount: r.recordCount,
+      recordTime: r.recordTime,
+    }));
+
+    return res.status(200).json(ranks);
+  } catch (error) {
+    return next(error);
+  }
+});
 
 
 export default router; 
