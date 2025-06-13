@@ -1,4 +1,3 @@
-
 import express from 'express';
 import { db } from '../utils/db.js';
 import { RankController } from '../controller/rankController.js';

@@ -12,4 +12,10 @@ router.post('/', groupController.uploadGroup.bind(groupController));
 router.patch('/:id', groupController.patchGroup.bind(groupController));
 router.delete('/', groupController.deleteGroup.bind(groupController));
 
+router.use('/:groupId/rank', rankRouter);
+router.use('/:groupId/participants', participantRouter);
+router.use('/:groupId/records', recordRouter);
+router.use('/:groupId/likes', likeRouter);
+
+
 export default router;
