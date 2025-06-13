@@ -1,9 +1,3 @@
-// This is your Prisma schema file,Add commentMore actions
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider      = "prisma-client-js"
   output        = "../generated/prisma"
@@ -15,26 +9,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// erDiagram
-
-//     Group ||--o{ GroupTag: has
-//     GroupTag }o--|| Tag : has
-//     Group ||--o{ Participant : participate
-//     Record }o--|| Participant : record
-//     Record }o--|| Group : record
-//     Participant ||--|| Rank : ranking
 
 model Tag {
   id        Int        @id @default(autoincrement())
   name      String     @unique
-  groupTags GroupTag[]
   createdAt DateTime   @default(now())
-  updateAt  DateTime   @default(now())
+  updatedAt DateTime   @default(now())
+  groupTags GroupTag[]
+
 }
 
 model Group {
   id                 Int           @id @default(autoincrement())
-  ownerParticipant   Participant?  @relation("GroupOwner", fields: [ownerParticipantId], references: [id], onDelete: Cascade)
   ownerParticipantId Int?
   ownerNickname      String
   ownerPassword      String
@@ -48,30 +34,31 @@ model Group {
   likeCount          Int           @default(0)
   createdAt          DateTime      @default(now())
   updatedAt          DateTime      @updatedAt
-  participants       Participant[]
+  ownerParticipant   Participant?  @relation("GroupOwner", fields: [ownerParticipantId], references: [id], onDelete: Cascade)
   groupTags          GroupTag[]
+  participants       Participant[]
   records            Record[]
 }
 
 model GroupTag {
   id      Int   @id @default(autoincrement())
-  group   Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
   groupId Int
-  tag     Tag   @relation(fields: [tagId], references: [id])
   tagId   Int
+  group   Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  tag     Tag   @relation(fields: [tagId], references: [id])
 }
 
 model Participant {
   id          Int      @id @default(autoincrement())
-  group       Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
   groupId     Int
   nickname    String   @unique
   password    String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  records     Record[]
-  ranks       Rank[]
   groupsOwned Group[]  @relation("GroupOwner")
+  group       Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  ranks       Rank[]
+  records     Record[]
 }
 
 model Record {
@@ -81,18 +68,18 @@ model Record {
   time          Int
   distance      Int
   photos        String[]
-  participant   Participant @relation(fields: [participantId], references: [id])
   participantId Int
-  group         Group       @relation(fields: [groupId], references: [id], onDelete: Cascade)
   groupId       Int
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
+  group         Group       @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  participant   Participant @relation(fields: [participantId], references: [id])
 }
 
 model Rank {
   id            Int         @id @default(autoincrement())
-  participant   Participant @relation(fields: [participantId], references: [id])
   participantId Int
   recordCount   Int
   recordTime    Int
+  participant   Participant @relation(fields: [participantId], references: [id])
 }

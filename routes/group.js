@@ -22,4 +22,4 @@ router.use('/:groupId/records', recordRouter);
 router.use('/:groupId/likes', likeRouter);
 
 
-export default router; 
+export default router;
