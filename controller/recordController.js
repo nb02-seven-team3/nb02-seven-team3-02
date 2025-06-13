@@ -1,5 +1,33 @@
 import axios from 'axios';
-import { toCreateRecordDTO, toRecordResponseDTO } from '../dtos/record.dto.js';
+import { assert, object, string, number, optional } from "superstruct";
+
+// 요청 body 검증용 스키마 정의 (CreateRecord)
+const CreateRecord = object({
+    participantId: number(),
+    nickname: string(),
+    password: string(),
+    exerciseType: string(),
+    description: optional(string()),
+    time: number(),
+    distance: number(),
+    
+});
+
+// 한글 운동명 → 영문 변환 함수
+function mapExerciseType(type) {
+    switch (type) {
+        case '러닝': return 'run';
+        case '사이클링': return 'cycle';
+        case '수영': return 'swim';
+        default: return type;
+    }
+}
+
+// description을 항상 객체로 반환
+function mapDescription(desc) {
+    if (!desc || desc === "") return {};
+    return { text: desc };
+}
 
 export class RecordController {
     constructor(prisma) {
@@ -19,60 +47,7 @@ export class RecordController {
         return p;
     }
 
-    async uploadRecord(req, res, next) {
-        try {
-            const groupId = Number(req.params.groupId);
-
-            //  DTO 함수로 변환
-            const dto = toCreateRecordDTO(req.body, req.files);
-
-            if (isNaN(groupId) || !Number.isInteger(groupId) || groupId <= 0) {
-                return res.status(400).json({ message: '유효하지 않은 groupId입니다.' });
-            }
-
-            if (!this._isValidExercise(dto.exerciseType)) {
-                return res.status(400).json({ message: '운동 종류는 러닝, 사이클링, 수영만 가능합니다.' });
-            }
-
-            const participant = await this._authenticateParticipant(dto.participantId, dto.nickname, dto.password);
-            if (!participant || participant.groupId !== groupId) {
-                return res.status(401).json({ message: '사용자 인증에 실패했습니다.' });
-            }
-
-            const newRecord = await this.db.record.create({
-                data: {
-                    exerciseType: dto.exerciseType,
-                    description: dto.description,
-                    time: dto.time,
-                    distance: dto.distance,
-                    photos: dto.photos,
-                    group: { connect: { id: groupId } },
-                    participant: { connect: { id: dto.participantId } }
-                }
-            });
-
-            const grp = await this.db.group.findUnique({
-                where: { id: groupId },
-                select: { discordWebhookUrl: true }
-            });
-
-            if (grp?.discordWebhookUrl) {
-                axios.post(grp.discordWebhookUrl, {
-                    content: `새 운동 기록: 닉네임=${dto.nickname}, 운동=${dto.exerciseType}, 시간=${dto.time}초, 거리=${dto.distance}m`
-                }).catch(err =>
-                    console.error('Discord webhook error:', err.message));
-            }
-
-            //  DTO 변환해서 응답
-            return res.status(201).json(toRecordResponseDTO({
-                ...newRecord,
-                participant: { id: participant.id, nickname: participant.nickname }
-            }));
-        } catch (err) {
-            return next(err);
-        }
-    }
-
+    // 기록 목록 조회
     async getRecordList(req, res, next) {
         try {
             const groupId = Number(req.params.groupId);
@@ -106,14 +81,30 @@ export class RecordController {
                 include: { participant: { select: { id: true, nickname: true } } }
             });
 
-            // DTO 리스트 변환
-            const data = records.map(toRecordResponseDTO);
-            return res.json({ data, total });
-        } catch (err) {
-            return next(err);
+            // 명세서에 맞는 응답 구조로 바로 가공
+            const data = records.map(r => ({
+                id: r.id,
+                exerciseType: mapExerciseType(r.exerciseType),
+                description: mapDescription(r.description),
+                time: r.time,
+                distance: r.distance,
+                photos: r.photos,
+                author: {
+                    id: r.participant.id,
+                    nickname: r.participant.nickname
+                }
+            }));
+
+            return res.json({
+                data,
+                total,
+            });
+        } catch (e) {
+            next(e);
         }
     }
 
+    // 기록 상세 조회
     async getRecord(req, res, next) {
         try {
             const groupId = Number(req.params.groupId);
@@ -135,10 +126,93 @@ export class RecordController {
                 return res.status(404).json({ message: '해당 기록이 없습니다.' });
             }
 
-            // DTO 변환 후 응답
-            return res.json(toRecordResponseDTO(rec));
-        } catch (err) {
-            return next(err);
+            // 명세서에 맞는 구조로 가공
+            return res.json({
+                id: rec.id,
+                exerciseType: mapExerciseType(rec.exerciseType),
+                description: mapDescription(rec.description),
+                time: rec.time,
+                distance: rec.distance,
+                photos: rec.photos,
+                author: {
+                    id: rec.participant.id,
+                    nickname: rec.participant.nickname,
+                }
+            });
+        } catch (e) {
+            next(e);
+        }
+    }
+
+    // 기록 등록
+    async uploadRecord(req, res, next) {
+        try {
+            // superstruct로 body 검증 (유효하지 않으면 400 에러 throw)
+            assert(req.body, CreateRecord);
+
+            const groupId = Number(req.params.groupId);
+            const participantId = Number(req.body.participantId);
+            const nickname = String(req.body.nickname);
+            const password = String(req.body.password);
+            const exerciseType = String(req.body.exerciseType);
+            const description = String(req.body.description ?? '');
+            const time = Number(req.body.time);
+            const distance = Number(req.body.distance);
+            const files = req.files ?? [];
+
+            if (isNaN(groupId) || !Number.isInteger(groupId) || groupId <= 0) {
+                return res.status(400).json({ message: '유효하지 않은 groupId입니다.' });
+            }
+            if (!this._isValidExercise(exerciseType)) {
+                return res.status(400).json({ message: '운동 종류는 러닝, 사이클링, 수영만 가능합니다.' });
+            }
+
+            const participant = await this._authenticateParticipant(participantId, nickname, password);
+            if (!participant || participant.groupId !== groupId) {
+                return res.status(401).json({ message: '사용자 인증에 실패했습니다.' });
+            }
+
+            const photos = files.map(f => f.filename);
+
+            const newRecord = await this.db.record.create({
+                data: {
+                    exerciseType,
+                    description,
+                    time,
+                    distance,
+                    photos,
+                    group: { connect: { id: groupId } },
+                    participant: { connect: { id: participantId } }
+                }
+            });
+
+            const grp = await this.db.group.findUnique({
+                where: { id: groupId },
+                select: { discordWebhookUrl: true }
+            });
+
+            if (grp?.discordWebhookUrl) {
+                axios.post(grp.discordWebhookUrl, {
+                    content: `새 운동 기록: 닉네임=${nickname}, 운동=${exerciseType}, 시간=${time}초, 거리=${distance}m`
+                }).catch(err =>
+                    console.error('Discord webhook error:', err.message));
+            }
+
+            // 등록 결과도 명세서에 맞는 구조로 바로 가공
+            return res.status(201).json({
+                id: newRecord.id,
+                exerciseType: mapExerciseType(newRecord.exerciseType),
+                description: mapDescription(newRecord.description),
+                time: newRecord.time,
+                distance: newRecord.distance,
+                photos: newRecord.photos,
+                author: {
+                    id: participant.id,
+                    nickname: participant.nickname
+                }
+            });
+        } catch (e) {
+            next(e);
         }
     }
 }
