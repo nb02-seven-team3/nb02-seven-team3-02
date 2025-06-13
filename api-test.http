@@ -196,4 +196,4 @@ DELETE http://localhost:3000/groups/1/participants/1/records/1
 #     { rank: 3, consumer_name: 'A', score: 10 },
 #   ]);
 # });
->>>>>>> 2784c8646152c8cda81a01a9b8b2f3fae35b297b
+
