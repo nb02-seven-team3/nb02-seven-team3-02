@@ -1,5 +1,5 @@
-import { CreateGroup, PatchGroup } from "../dtos/group.dto";
 import { assert } from "superstruct";
+import { CreateGroup, PatchGroup } from "../dtos/group.dto.js";
 
 export class GroupController {
 

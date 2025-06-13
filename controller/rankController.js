@@ -14,9 +14,9 @@ export class RankController {
                     throw new Error('유효하지 않은 groupId입니다.');
                 }
             };
-
-            400; "groupId must be integer"
-            //그룹 유효성 검사란
+            validateGroupId(groupId)
+          
+        
 
             // TODO: groupId가 유효한지 검사 (예: 존재하는 그룹인지 확인)
             // groupId 기준으로 랭킹 정보 조회
@@ -24,6 +24,12 @@ export class RankController {
                 where: { participant: { groupId } },
                 include: { participant: true }
             });
+            const recCount = await Promise.all(
+              rows.map(async ())
+            )
+
+
+
 
             // API 명세서에 맞게 응답 형식 변환
             const ranks = rows.map((r) => ({

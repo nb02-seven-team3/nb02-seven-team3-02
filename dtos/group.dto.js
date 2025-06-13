@@ -1,4 +1,7 @@
-import { object, string, size, integer, array, url, min, partial } from "superstruct";
+import pkg from 'superstruct';
+const { object, string, size, integer, array, url, min, partial } = pkg;
+
+
 
 
 
