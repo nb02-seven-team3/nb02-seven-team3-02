@@ -14,7 +14,7 @@ router.get('/', groupController.getGroupList.bind(groupController));
 router.get('/:id', groupController.getGroup.bind(groupController));
 router.post('/', groupController.uploadGroup.bind(groupController));
 router.patch('/:id', groupController.patchGroup.bind(groupController));
-router.delete('/', groupController.deleteGroup.bind(groupController));
+router.delete('/:id', groupController.deleteGroup.bind(groupController));
 
 router.use('/:groupId/rank', rankRouter);
 router.use('/:groupId/participants', participantRouter);

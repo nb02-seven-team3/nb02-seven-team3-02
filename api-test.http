@@ -11,7 +11,7 @@ photo=@"C:/Users/user/Desktop/sample.jpeg"
 
 
 
-###
+###그룹 생성 
 POST http://localhost:3000/groups
 Content-Type: application/json
 
@@ -34,21 +34,21 @@ Content-Type: application/json
 
 ###
 #  그룹상세조회 
-GET http://localhost:3000/groups/21
+GET http://localhost:3000/groups/24
 
 ###
 # 그룹좋아요늘리기 
-POST http://localhost:3000/groups/21/likes
+POST http://localhost:3000/groups/24/likes
 
 ###
 # 그룹 좋아요 취소 
-DELETE  http://localhost:3000/groups/21/likes/remove
+DELETE  http://localhost:3000/groups/24/likes
 
 
 
 ###
 #그룹 수정 
-PATCH  http://localhost:3000/groups/20
+PATCH  http://localhost:3000/groups/21
 Content-Type: application/json
 
 {
@@ -64,7 +64,7 @@ Content-Type: application/json
 
 
 ###
-DELETE  http://localhost:3000/groups/remove/11
+DELETE  http://localhost:3000/groups/21
 Content-Type: application/json
 
 {
@@ -75,54 +75,64 @@ Content-Type: application/json
 
 #태그 목록 조회 
 ###
-GET http://localhost:3000/tags/
+GET http://localhost:3000/tags
 Content-Type: application/json
 
 ###
 #태그 상세 조회 
-GET http://localhost:3000/tags/2
+GET http://localhost:3000/tags/3
 Content-Type: application/json
 
 
 
 ### Record 생성 (POST)
-POST http://localhost:3000/groups/20/participants/29/records
+POST http://localhost:3000/groups/24/records
 Content-Type: application/json
 
 {
-  "exerciseType": "수영" , 
-  "description": "추가 ",
-  "time": 3500,
-  "distance": 12500,
-  "photos": []
+  "participantId": 38,
+    "nickname": "테스트 ",
+    "password": "321321",
+    "exerciseType": "수영",
+    "description": "운동동동",
+    "time": 234,
+    "distance" : 301
 }
 
-### 1) 그룹 내 모든 Record 조회 (GET)
-GET http://localhost:3000/groups/2/records?page=1&limit=10
+### 1) 그룹 내 모든 Record 목록 조회 (GET)
+GET http://localhost:3000/groups/24/records?page=1&limit=10
 
-### 2) 특정 참여자의 Record 조회 (GET)
-GET http://localhost:3000/groups/2/participants/1/records
-
-### 3) 단일 Record 조회 (GET)
-GET http://localhost:3000/groups/1/participants/1/records/1
+### 2) 특정 참여자의 Record 상세조회(GET)
+GET http://localhost:3000/groups/24/records/2
 
 ### 4) Record 삭제 (DELETE)
-DELETE http://localhost:3000/groups/1/participants/1/records/1
+DELETE http://localhost:3000/groups/24/records/1
 
 
 #참가자 그룹참여 
 ###
-POST http://localhost:3000/groups/20/participants
+POST http://localhost:3000/groups/24/participants
 Content-Type: application/json
 
 {
-  "nickname" : "q반환테sd트트 ",
-  "password" : "123123"
+  "nickname" : "테스트 ",
+  "password" : "321321"
 }
+
+###참가자 삭제
+DELETE http://localhost:3000/groups/24/participants
+Content-Type: application/json
+
+{
+  "nickname" : "테스트 ",
+  "password" : "321321"
+}
+
+
 
 #랭크 조회 
 ###
-GET http://localhost:3000/groups/20/rank
+GET http://localhost:3000/groups/24/rank
 
 
 ###

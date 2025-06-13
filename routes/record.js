@@ -8,6 +8,6 @@ const recordController = new RecordController(db);
 
 router.post('/', upload.array('photos', 1), recordController.uploadRecord.bind(recordController));
 router.get('/', recordController.getRecordList.bind(recordController));
-router.get('/:id', recordController.getRecord.bind(recordController));
+router.get('/:recordId', recordController.getRecord.bind(recordController));
 
 export default router;

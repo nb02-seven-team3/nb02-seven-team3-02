@@ -15,7 +15,7 @@ export class RankController {
 
       // TODO: groupId가 유효한지 검사 (예: 존재하는 그룹인지 확인)
       // groupId 기준으로 랭킹 정보 조회
-      const rows = await this.db.rank.findMany({
+      const rows = await this.db.record.findMany({
         where: { participant: { groupId } },
         include: {
           participant: {
