@@ -1,3 +1,6 @@
+import { CreateParticipant } from "../dtos/participant.dto";
+import { assert } from "superstruct";
+
 export class ParticipantController {
     constructor(prisma) {
         this.db = prisma;
@@ -5,6 +8,7 @@ export class ParticipantController {
 
     async uploadParticipant(req, res, next) {
         try {
+            assert(req.body, CreateParticipant);
             const groupId = Number(req.params.groupId);
             const { nickname, password } = req.body;
 
