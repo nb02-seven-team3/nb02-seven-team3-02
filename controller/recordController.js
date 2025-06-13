@@ -1,33 +1,6 @@
 import axios from 'axios';
-import { assert, object, string, number, optional } from "superstruct";
-
-// 요청 body 검증용 스키마 정의 (CreateRecord)
-const CreateRecord = object({
-    participantId: number(),
-    nickname: string(),
-    password: string(),
-    exerciseType: string(),
-    description: optional(string()),
-    time: number(),
-    distance: number(),
-    
-});
-
-// 한글 운동명 → 영문 변환 함수
-function mapExerciseType(type) {
-    switch (type) {
-        case '러닝': return 'run';
-        case '사이클링': return 'cycle';
-        case '수영': return 'swim';
-        default: return type;
-    }
-}
-
-// description을 항상 객체로 반환
-function mapDescription(desc) {
-    if (!desc || desc === "") return {};
-    return { text: desc };
-}
+import { assert } from "superstruct";
+import { CreateRecord, mapExerciseType, mapDescription } from "../dtos/record.dto.js";
 
 export class RecordController {
     constructor(prisma) {

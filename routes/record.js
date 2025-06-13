@@ -12,7 +12,7 @@ router.post('/', upload.array('photos', 1), recordController.uploadRecord.bind(r
 // GET /groups/:groupId/records
 router.get('/', recordController.getRecordList.bind(recordController));
 
-// GET /groups/:groupId/records/:recordId  ← 여기!
+// GET /groups/:groupId/records/:recordId  
 router.get('/:recordId', recordController.getRecord.bind(recordController));
 
 export default router;
