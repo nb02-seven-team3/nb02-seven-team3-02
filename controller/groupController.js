@@ -221,7 +221,7 @@ export class GroupController {
       let finalGroupId;
       let ownerParticipantId;
 
-      await db.$transaction(async (tx) => {
+      await this.db.$transaction(async (tx) => {
         // 1. 그룹 생성
         const newGroup = await tx.group.create({
           data: {
@@ -283,7 +283,7 @@ export class GroupController {
       });
 
       // 최종 그룹 정보 조회 및 응답 구성
-      const group = await db.group.findUnique({
+      const group = await this.db.group.findUnique({
         where: { id: finalGroupId },
         include: {
           participants: true,
@@ -346,7 +346,7 @@ export class GroupController {
 
 
       // 그룹 존재 여부 확인
-      const group = await db.group.findUnique({
+      const group = await this.db.group.findUnique({
         where: { id },
         select: {
           ownerPassword: true,
@@ -364,7 +364,7 @@ export class GroupController {
       }
 
       // ─────── Prisma 트랜잭션 시작 ───────
-      const changedGroup = await db.$transaction(async (tx) => {
+      const changedGroup = await this.db.$transaction(async (tx) => {
         //정보 업데이트를 위한 데이터 객체 생성
         const changeData = {};
         if (name !== undefined) {
@@ -508,7 +508,7 @@ export class GroupController {
 
 
       if (enterPassword === realPassword.ownerPassword) {
-        const deleteGroup = await db.group.delete({
+        const deleteGroup = await this.db.group.delete({
           where: {
             id: id
           }
