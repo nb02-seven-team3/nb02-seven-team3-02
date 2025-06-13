@@ -1,3 +1,6 @@
+import { CreateGroup, PatchGroup } from "../dtos/group.dto";
+import { assert } from "superstruct";
+
 export class GroupController {
 
   constructor(prisma) {
@@ -198,6 +201,7 @@ export class GroupController {
 
   async uploadGroup(req, res, next) {
     try {
+      assert(req.body, CreateGroup);
       let {
         name,
         description,
@@ -326,6 +330,7 @@ export class GroupController {
 
   async patchGroup(req, res, next) {
     try {
+      assert(req.body, PatchGroup);
       const id = Number(req.params.id);
       let {
         name,
