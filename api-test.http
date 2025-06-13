@@ -18,10 +18,10 @@ Content-Type: application/json
 {
   "name": "태그 테스트 그룹",
   "description": "테스트 그룹입니다.",
-  "photoUrl": "string",
+  "photoUrl": "https://example.com/photo.jpg",
   "goalRep": 10,
-  "discordWebhookUrl": "string",
-  "discordInviteUrl": "string",
+  "discordWebhookUrl": "https://example.com/photo.jpg",
+  "discordInviteUrl": "https://example.com/photo.jpg",
   "ownerNickname": "abc",
   "ownerPassword": "123123",
   "tags" : ["as", "운동", "여가", "안녕"]
@@ -116,13 +116,13 @@ POST http://localhost:3000/groups/20/participants
 Content-Type: application/json
 
 {
-  "nickname" : "참여자수 ",
+  "nickname" : "q반환테sd트트 ",
   "password" : "123123"
 }
 
 #랭크 조회 
 ###
-GET http://localhost:3000/groups/1/rank
+GET http://localhost:3000/groups/20/rank
 
 
 ###
