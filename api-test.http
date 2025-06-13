@@ -29,7 +29,7 @@ Content-Type: application/json
 
 ###
 # 그룹목록조회 
-GET http://localhost:3000/groups
+GET http://localhost:3000/groups?order=participantCount
 Content-Type: application/json
 
 ###

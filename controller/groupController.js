@@ -18,6 +18,13 @@ export class GroupController {
         case 'likeCount':
           orderBy = { likeCount: 'desc' }
           break;
+        case 'participantCount':
+          orderBy = {
+            participants: {
+              _count: 'desc'
+            }
+          };
+          break;
         default:
           return res.status(400).json({ message: "The orderBy parameter must be one of the following values: [‘likeCount’, ‘participantCount’, ‘createdAt’]." })
 
@@ -37,26 +44,12 @@ export class GroupController {
         where: {
           name: {
             contains: name,
-            mode: 'insensitive'
-          }
+            mode: 'insensitive',
+          },
         },
-
-        select: {
-          id: true,
-          name: true,
-          description: true,
-          photoUrl: true,
-          goalRep: true,
-          discordWebhookUrl: true,
-          discordInviteUrl: true,
-          likeCount: true,
-          createdAt: true,
-          updatedAt: true,
-          badges: true,
+        include: {
           groupTags: {
-            include: {
-              tag: true,
-            },
+            include: { tag: true },
           },
           ownerParticipant: {
             select: {
@@ -75,12 +68,12 @@ export class GroupController {
             },
           },
           _count: {
-            select: { participants: true }
+            select: { participants: true },
           },
         },
         orderBy,
-        skip: offset,
-        take: limit,
+        skip: Number(offset),
+        take: Number(limit),
       });
       const formatList = groupList.map((list) => ({
         id: list.id,
