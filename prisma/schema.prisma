@@ -15,7 +15,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// erDiagram
+// ergitDiagram
 
 //     Group ||--o{ GroupTag: has
 //     GroupTag }o--|| Tag : has
@@ -29,7 +29,7 @@ model Tag {
   name      String     @unique
   groupTags GroupTag[]
   createdAt DateTime   @default(now())
-  updateAt  DateTime   @default(now())
+  updatedAt DateTime   @default(now())
 }
 
 model Group {

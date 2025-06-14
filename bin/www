@@ -9,7 +9,7 @@ const debug = debugLib('nb02-seven-team3-02:server');
 /**
  * Get port from environment and store in Express.
  */
-const port = normalizePort(process.env.PORT || '3001');
+const port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
 
 /**
