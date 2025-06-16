@@ -9,14 +9,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model Tag {
   id        Int        @id @default(autoincrement())
   name      String     @unique
   createdAt DateTime   @default(now())
   updatedAt DateTime   @default(now())
   groupTags GroupTag[]
-
 }
 
 model Group {
@@ -30,7 +28,7 @@ model Group {
   goalRep            Int
   discordWebhookUrl  String
   discordInviteUrl   String
-  badges             String[]
+  badges             Badges[]
   likeCount          Int           @default(0)
   createdAt          DateTime      @default(now())
   updatedAt          DateTime      @updatedAt
@@ -38,6 +36,12 @@ model Group {
   groupTags          GroupTag[]
   participants       Participant[]
   records            Record[]
+}
+
+enum Badges {
+  PARTICIPANTS
+  RECORDS
+  LIKES
 }
 
 model GroupTag {
