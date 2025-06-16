@@ -16,13 +16,13 @@ POST http://localhost:3000/groups
 Content-Type: application/json
 
 {
-  "name": "태그 테스트 그룹",
-  "description": "테스트 그룹입니다.",
+  "name": "연동 테스트 2",
+  "description": "연동될까요2",
   "photoUrl": "https://sprint-be-project.s3.ap-northeast-2.amazonaws.com/seven/1749453823052.jpg",
   "goalRep": 10,
-  "discordWebhookUrl": "https://example.com/photo.jpg",
-  "discordInviteUrl": "https://example.com/photo.jpg",
-  "ownerNickname": "abc",
+  "discordWebhookUrl": "https://example.com",
+  "discordInviteUrl": "https://example.com",
+  "ownerNickname": "aaaaa",
   "ownerPassword": "123123",
   "tags" : ["as", "운동", "여가", "안녕"]
 }
@@ -86,11 +86,11 @@ Content-Type: application/json
 
 
 ### Record 생성 (POST)
-POST http://localhost:3000/groups/24/records
+POST http://localhost:3000/groups/3/records
 Content-Type: application/json
 
 {
-  "participantId": 38,
+  "participantId": 3,
     "nickname": "테스트 ",
     "password": "321321",
     "exerciseType": "수영",
@@ -111,12 +111,12 @@ DELETE http://localhost:3000/groups/24/records/1
 
 #참가자 그룹참여 
 ###
-POST http://localhost:3000/groups/24/participants
+POST http://localhost:3000/groups/1/participants
 Content-Type: application/json
 
 {
-  "nickname" : "테스트 ",
-  "password" : "321321"
+  "nickname" : "참여자1 ",
+  "password" : "123123"
 }
 
 ###참가자 삭제

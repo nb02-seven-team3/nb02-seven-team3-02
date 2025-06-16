@@ -1,10 +1,12 @@
 import axios from 'axios';
 import { assert } from "superstruct";
 import { CreateRecord, mapExerciseType, mapDescription } from "../dtos/record.dto.js";
+import { GroupService } from "../services/group.service.js";
 
 export class RecordController {
     constructor(prisma) {
         this.db = prisma;
+        this.groupService = new GroupService(prisma)
     }
 
     _isValidExercise(type) {
@@ -159,6 +161,8 @@ export class RecordController {
                 }
             });
 
+            await this.groupService.checkAndAwardBadges(groupId);
+
             const grp = await this.db.group.findUnique({
                 where: { id: groupId },
                 select: { discordWebhookUrl: true }
@@ -183,7 +187,7 @@ export class RecordController {
                     id: participant.id,
                     nickname: participant.nickname
                 }
-            });
+            })
         } catch (e) {
             next(e);
         }
