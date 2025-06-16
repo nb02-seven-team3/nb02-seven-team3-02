@@ -45,7 +45,7 @@ export class ParticipantController {
         },
       });
 
-      await GroupService.checkAndAwardBadges(parseInt(groupId));
+      await this.groupService.checkAndAwardBadges(parseInt(groupId));
 
       //  다시 그룹 조회 
       const group = await this.db.group.findUnique({
