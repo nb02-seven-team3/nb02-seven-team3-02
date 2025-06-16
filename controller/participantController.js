@@ -1,11 +1,11 @@
 import { CreateParticipant } from "../dtos/participant.dto.js";
 import { assert } from "superstruct";
-
-
+import { GroupService } from "../services/group.service.js";
 
 export class ParticipantController {
   constructor(prisma) {
     this.db = prisma;
+    this.groupService = new GroupService(prisma)
   }
 
   async uploadParticipant(req, res, next) {
@@ -44,6 +44,9 @@ export class ParticipantController {
           }
         },
       });
+
+      await GroupService.checkAndAwardBadges(parseInt(groupId));
+
       //  다시 그룹 조회 
       const group = await this.db.group.findUnique({
         where: { id: groupId },

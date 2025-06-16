@@ -1,6 +1,9 @@
+import { GroupService } from "../services/group.service.js";
+
 export class LikesController {
     constructor(prisma) {
         this.db = prisma;
+        this.groupService = new GroupService(prisma)
     }
 
     async uploadLike(req, res, next) {
@@ -13,7 +16,7 @@ export class LikesController {
             }
 
             const group = await this.db.group.findUnique({
-                where: { id : groupId },
+                where: { id: groupId },
                 select: {
                     likeCount: true
                 }
@@ -22,11 +25,14 @@ export class LikesController {
                 return res.status(404).json({ message: '그룹을 찾을 수 없습니다.' });
             }
             const groupLike = await this.db.group.update({
-                where: { id : groupId },
+                where: { id: groupId },
                 data: {
                     likeCount: { increment: 1 }
                 }
             });
+
+            await this.groupService.checkAndAwardBadges(groupId);
+
             return res.json({ likeCount: groupLike.likeCount });
         } catch (e) {
             console.error('Error in uploadLike:', e);
@@ -44,7 +50,7 @@ export class LikesController {
                 return res.status(400).json({ message: '유효하지 않은 그룹 ID입니다.' });
             }
             const group = await this.db.group.findUnique({
-                where: { id : groupId },
+                where: { id: groupId },
                 select: {
                     likeCount: true
                 }
@@ -56,7 +62,7 @@ export class LikesController {
             // 좋아요 수가 0보다 클 때만 감소함,.
             if (group.likeCount > 0) {
                 const removeLike = await this.db.group.update({
-                    where: { id : groupId },
+                    where: { id: groupId },
                     data: {
                         likeCount: { decrement: 1 }
                     }
