@@ -1,0 +1,5 @@
+export const BADGE_THRESHOLDS = {
+    PARTICIPANTS: 10,
+    RECORDS: 100,
+    LIKES: 100,
+};
