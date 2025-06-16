@@ -1,5 +1,6 @@
-import { Badges } from "@prisma/client";
-import { BADGE_THRESHOLDS } from "../utils/constants";
+import prismaClient from '@prisma/client';
+const { Badges } = prismaClient;
+import { BADGE_THRESHOLDS } from "../utils/constants.js";
 
 export class GroupService {
 
@@ -57,8 +58,8 @@ export class GroupService {
                     data: {
                         badges: Array.from(currentBadges),
                     },
-                }),
-                    console.log(`${group.name}의 뱃지가 업데이트되었습니다.`);
+                });
+                console.log(`${group.name}의 뱃지가 업데이트되었습니다.`);
             } catch (error) {
                 console.error(`뱃지 업데이트에 실패했습니다. 오류: ${error.message}`);
             }
