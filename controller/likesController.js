@@ -1,11 +1,14 @@
+import { GroupService } from "../services/group.service.js";
+
 export class LikesController {
     constructor(prisma) {
         this.db = prisma;
+        this.groupService = new GroupService(prisma)
     }
 
     async uploadLike(req, res, next) {
         try {
-            const id = Number(req.params.groupId);
+            const groupId = Number(req.params.groupId);
 
             //ID 유효성 검사 진행
             if (isNaN(groupId) || !Number.isInteger(groupId) || groupId <= 0) {
@@ -27,6 +30,9 @@ export class LikesController {
                     likeCount: { increment: 1 }
                 }
             });
+
+            await this.groupService.checkAndAwardBadges(groupId);
+
             return res.json({ likeCount: groupLike.likeCount });
         } catch (e) {
             console.error('Error in uploadLike:', e);
@@ -37,9 +43,9 @@ export class LikesController {
     // 그룹의 likeCount가 어떤지 보기위해 findUnique 후 likeCount >= 0 일 때까지만 줄어들도록 수정 
     async deleteLike(req, res, next) {
         try {
-            const id = Number(req.params.groupId);
+            const groupId = Number(req.params.groupId);
 
-            // ID 유효성 검사 진행행
+            // ID 유효성 검사 진행
             if (isNaN(groupId) || !Number.isInteger(groupId) || groupId <= 0) {
                 return res.status(400).json({ message: '유효하지 않은 그룹 ID입니다.' });
             }
@@ -54,7 +60,7 @@ export class LikesController {
             }
 
             // 좋아요 수가 0보다 클 때만 감소함,.
-            if (group.likeCount >= 0) {
+            if (group.likeCount > 0) {
                 const removeLike = await this.db.group.update({
                     where: { id: groupId },
                     data: {

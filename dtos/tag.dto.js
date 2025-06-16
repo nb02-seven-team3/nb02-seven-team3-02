@@ -1,5 +1,5 @@
-import { object, string, size } from "superstruct";
+// import { object, string, size } from "superstruct";
 
-export const CreateTag = object({
-    name: size(string(), 1, 10)
-});
+// export const CreateTag = object({
+//     name: size(string(), 1, 10)
+// });

@@ -1,6 +1,3 @@
-
-
-
 import { object, string, size, integer, array, min, partial, define } from "superstruct";
 import isurl from "is-url";
 
