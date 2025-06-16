@@ -90,15 +90,6 @@ POST http://localhost:3000/groups/24/records
 Content-Type: application/json
 
 {
-<<<<<<< HEAD
-  "participantId": 1,
-  "nickname": "건강러",
-  "password": "securepassword123!",
-  "exerciseType": "running",
-  "description": "오전 조깅 완료",
-  "time": 3600,
-  "distance": 10000
-=======
   "participantId": 38,
     "nickname": "테스트 ",
     "password": "321321",
@@ -106,7 +97,6 @@ Content-Type: application/json
     "description": "운동동동",
     "time": 234,
     "distance" : 301
->>>>>>> c0348759f4ff47e90d3172261537d2e58a7f9ba3
 }
 
 ### 1) 그룹 내 모든 Record 목록 조회 (GET)
