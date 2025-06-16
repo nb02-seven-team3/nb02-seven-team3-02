@@ -18,7 +18,7 @@ Content-Type: application/json
 {
   "name": "태그 테스트 그룹",
   "description": "테스트 그룹입니다.",
-  "photoUrl": "https://example.com/photo.jpg",
+  "photoUrl": "https://sprint-be-project.s3.ap-northeast-2.amazonaws.com/seven/1749453823052.jpg",
   "goalRep": 10,
   "discordWebhookUrl": "https://example.com/photo.jpg",
   "discordInviteUrl": "https://example.com/photo.jpg",
@@ -177,9 +177,6 @@ GET http://localhost:3000/groups/1/participants/1/records/1
 
 ### 4) Record 삭제 (DELETE)
 DELETE http://localhost:3000/groups/1/participants/1/records/1
-<<<<<<< HEAD
->>>>>>> 249af842d2a50ecbd33e2651d7ee23f54c65fbaf
-=======
 
 
 

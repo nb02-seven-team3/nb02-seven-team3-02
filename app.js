@@ -2,6 +2,8 @@ import 'dotenv/config';
 import express from 'express';
 import path from 'path';
 import logger from 'morgan';
+import cors from 'cors';
+
 
 // route 가져오기
 import groupRouter from './routes/group.js';
@@ -9,8 +11,12 @@ import imageRouter from './routes/image.js';
 import tagRouter from './routes/tag.js';
 
 const app = express();
-app.use(express.json());
 
+app.use(express.json());
+app.use(cors({
+  origin: 'http://localhost:3001', // 프론트 주소
+  credentials: true, // 쿠키 사용 시 필요 (없으면 false로 해도 됨)
+}));
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 app.use(logger('dev'));
 app.use(express.urlencoded({ extended: false }));
