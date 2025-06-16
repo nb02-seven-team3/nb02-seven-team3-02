@@ -1,5 +1,5 @@
 export const BADGE_THRESHOLDS = {
-    PARTICIPANTS: 10,
-    RECORDS: 100,
-    LIKES: 100,
+    PARTICIPATION_10: 10,
+    RECORD_100: 100,
+    LIKE_100: 100,
 };

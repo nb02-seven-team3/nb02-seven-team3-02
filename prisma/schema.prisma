@@ -39,9 +39,9 @@ model Group {
 }
 
 enum Badges {
-  PARTICIPANTS
-  RECORDS
-  LIKES
+  PARTICIPATION_10
+  RECORD_100
+  LIKE_100
 }
 
 model GroupTag {
