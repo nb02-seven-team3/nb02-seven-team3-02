@@ -1,4 +1,4 @@
-
+np
 
 
 # 그룹 image 업로드 
@@ -90,11 +90,13 @@ POST http://localhost:3000/groups/20/participants/29/records
 Content-Type: application/json
 
 {
-  "exerciseType": "수영" , 
-  "description": "추가 ",
-  "time": 3500,
-  "distance": 12500,
-  "photos": []
+  "participantId": 1,
+  "nickname": "건강러",
+  "password": "securepassword123!",
+  "exerciseType": "running",
+  "description": "오전 조깅 완료",
+  "time": 3600,
+  "distance": 10000
 }
 
 ### 1) 그룹 내 모든 Record 조회 (GET)
