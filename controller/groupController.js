@@ -275,6 +275,8 @@ export class GroupController {
         });
       });
 
+      await this.groupService.checkAndAwardBadges(groupId)
+      
       const group = await this.db.group.findUnique({
         where: { id: finalGroupId },
         include: {
