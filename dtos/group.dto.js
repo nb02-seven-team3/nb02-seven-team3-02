@@ -1,9 +1,4 @@
-import { object, string, size, integer, array, min, partial, define } from "superstruct";
-import isurl from "is-url";
-
-
-const Url = define('Url', isurl)
-
+import { object, string, size, integer, array, min, partial } from "superstruct";
 
 export const CreateGroup = object({
     name: size(string(), 1, 10),

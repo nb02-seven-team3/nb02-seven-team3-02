@@ -7,6 +7,7 @@ const router = express.Router({ mergeParams: true });
 const recordController = new RecordController(db);
 
 // router.post('/', upload.array('files', 10), recordController.uploadRecord.bind(recordController));
+router.post('/', recordController.uploadRecord.bind(recordController));
 router.get('/', recordController.getRecordList.bind(recordController));
 router.get('/:id', recordController.getRecord.bind(recordController));
 

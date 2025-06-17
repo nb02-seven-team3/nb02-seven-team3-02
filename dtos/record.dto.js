@@ -9,7 +9,7 @@ export const CreateRecord = object({
     description: optional(string()),
     time: number(),
     distance: number(),
-    photos: array(string()),
+    photos: optional(array(string())),
 });
 
 // 한글 운동명 → 영문 코드 변환 함수

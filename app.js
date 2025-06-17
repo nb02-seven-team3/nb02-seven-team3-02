@@ -22,7 +22,7 @@ app.use(logger('dev'));
 app.use(express.urlencoded({ extended: false }));
 
 app.get('/', (req, res) => {
-    res.json('OK');
+  res.json('OK');
 });
 
 // route 사용
@@ -32,8 +32,8 @@ app.use('/tags', tagRouter);
 
 //global error handler
 app.use((err, req, res, next) => {
-    console.error(err.stack);
-    return res.status(500).json({ message: 'Server Error' })
+  console.error(err.stack);
+  return res.status(500).json({ message: 'Server Error' })
 })
 
 export default app;
