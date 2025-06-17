@@ -1,3 +1,4 @@
+import { measureMemory } from "vm";
 import { CreateParticipant } from "../dtos/participant.dto.js";
 import { assert } from "superstruct";
 
@@ -18,6 +19,17 @@ export class ParticipantController {
       if (isNaN(groupId)) {
         return res.status(400).json({ message: 'Invalid groupId' });
       }
+
+      //닉네임 공백 제거
+      //앞뒤 공백 제거 trim()
+      //모든 공백 제거 replace(/\s/g, '')<- agument
+      //앞/뒤만 제거 `replace(/^\s+|\s+$/g, '')`
+      let clenanedNickname = nickname.replace(/\s/g, '');//모든 공백 제거
+      //닉네임 길이 검사
+      if (clenanedNickname.length < 2 || clenanedNickname.length > 10){
+        return res.status(400).json({ message: '닉네임은 2자 이상 10자 이하로 입력해주세요.'});
+      }
+
 
       //닉네임 중복 확인
       const nicknameChecker = await this.db.participant.findFirst({
