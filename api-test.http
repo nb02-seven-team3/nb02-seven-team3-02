@@ -120,7 +120,7 @@ Content-Type: application/json
 }
 
 ###참가자 삭제
-DELETE http://localhost:3000/groups/24/participants
+DELETE http://localhost:3000/groups/1/participants
 Content-Type: application/json
 
 {
