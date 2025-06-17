@@ -1,25 +1,25 @@
 export class ImageController {
     async uploadImage(req, res, next) {
         try {
-            const file = req.file;
+            const files = req.files;
 
-            if (!file) {
+            if (!files || files.length === 0) {
                 return res.status(400).json({ message: "파일이 업로드되지 않았습니다." });
             }
 
-            console.log('파일 정보:', req.file);
+            console.log('파일 정보:', files);
             console.log('body:', req.body);
 
-            if (!req.file) {
+            if (!req.files) {
                 return res.status(404).json({ message: "파일 없음" });
             }
-            const filename = req.file.filename;
-            const fileUrl = `/uploads/${filename}`;
+            const urls = files.map(file => `/uploads/${file.filename}`);
+            const filenames = files.map(file => file.filename);
 
             res.status(200).json({
-                message: '파일 업로드',
-                filename: req.file.filename,
-                url: fileUrl,
+                message: '파일 업로드 완료',
+                filenames: filenames,
+                urls: urls,
             });
         } catch (error) {
             console.error('이미지 업로드 중 오류 발생:', error);

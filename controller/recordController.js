@@ -126,15 +126,21 @@ export class RecordController {
             assert(req.body, CreateRecord);
 
             const groupId = Number(req.params.groupId);
-            const participantId = Number(req.body.participantId);
-            const nickname = String(req.body.nickname);
-            const password = String(req.body.password);
+            const authorNickname = String(req.body.authorNickname);
+            const authorPassword = String(req.body.authorPassword);
             const exerciseType = String(req.body.exerciseType);
             const description = String(req.body.description ?? '');
             const time = Number(req.body.time);
             const distance = Number(req.body.distance);
-            const files = req.files ?? [];
+            const files = req.files;
 
+            if (!files || files.length === 0) {
+                return res.status(400).json({ message: '레코드 이미지가 업로드되지 않았습니다.' });
+            }
+
+            const photos = files.map(file => `/uploads/${file.filename}`);
+
+            //유효성 검사
             if (isNaN(groupId) || !Number.isInteger(groupId) || groupId <= 0) {
                 return res.status(400).json({ message: '유효하지 않은 groupId입니다.' });
             }
@@ -142,27 +148,25 @@ export class RecordController {
                 return res.status(400).json({ message: '운동 종류는 러닝, 사이클링, 수영만 가능합니다.' });
             }
 
-            const participant = await this._authenticateParticipant(participantId, nickname, password);
+            //참가자 인증
+            const participant = await this._authenticateParticipant(authorNickname, authorPassword);
             if (!participant || participant.groupId !== groupId) {
                 return res.status(401).json({ message: '사용자 인증에 실패했습니다.' });
             }
-
-            const photos = files.map(f => f.filename);
 
             const newRecord = await this.db.record.create({
                 data: {
                     exerciseType,
                     description,
-                    time,
-                    distance,
+                    time: Number(time),
+                    distance: Number(distance),
                     photos,
                     group: { connect: { id: groupId } },
-                    participant: { connect: { id: participantId } }
+                    participant: { connect: { id: (participant.Id) } }
                 }
             });
 
-            await this.groupService.checkAndAwardBadges(groupId);
-
+            // Discord Webhook 전송
             const grp = await this.db.group.findUnique({
                 where: { id: groupId },
                 select: { discordWebhookUrl: true }

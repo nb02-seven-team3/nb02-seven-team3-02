@@ -5,6 +5,6 @@ import { ImageController } from '../controller/imageController.js';
 const router = express.Router();
 const imageController = new ImageController();
 
-router.post('/', upload.single('photo'), imageController.uploadImage.bind(imageController))
+router.post('/', upload.array('files', 5), imageController.uploadImage.bind(imageController))
 
 export default router;

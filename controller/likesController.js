@@ -31,8 +31,6 @@ export class LikesController {
                 }
             });
 
-            await this.groupService.checkAndAwardBadges(groupId);
-
             return res.json({ likeCount: groupLike.likeCount });
         } catch (e) {
             console.error('Error in uploadLike:', e);

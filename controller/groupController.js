@@ -1,12 +1,14 @@
 import { assert } from "superstruct";
 import { CreateGroup, PatchGroup } from "../dtos/group.dto.js";
 import { EncryptService } from "../services/encryptService.js";
+import { GroupService } from "../services/group.service.js";
 
 const encrypt = new EncryptService();
 
 export class GroupController {
   constructor(prisma) {
     this.db = prisma;
+    this.groupService = new GroupService(prisma)
   }
 
   async getGroupList(req, res, next) {
@@ -88,11 +90,11 @@ export class GroupController {
         tags: list.groupTags.map((gt) => gt.tag?.name ?? ''),
         owner: list.ownerParticipant
           ? {
-              id: list.ownerParticipant.id,
-              nickname: list.ownerParticipant.nickname,
-              createdAt: list.ownerParticipant.createdAt,
-              updatedAt: list.ownerParticipant.updatedAt,
-            }
+            id: list.ownerParticipant.id,
+            nickname: list.ownerParticipant.nickname,
+            createdAt: list.ownerParticipant.createdAt,
+            updatedAt: list.ownerParticipant.updatedAt,
+          }
           : null,
         participants: list.participants.map((p) => ({
           id: p.id,
@@ -130,6 +132,7 @@ export class GroupController {
           discordInviteUrl: true,
           likeCount: true,
           badges: true,
+          records: true,
           createdAt: true,
           updatedAt: true,
           groupTags: {
@@ -158,6 +161,19 @@ export class GroupController {
         res.status(404).json({ message: "Group not found" });
       }
 
+      // 배지 
+      const badges = [];
+
+      if (groupDetail.participants.length >= 10) {
+        badges.push("PARTICIPATION_10");
+      }
+      if (groupDetail.records && groupDetail.records.length >= 100) {
+        badges.push("RECORD_100");
+      }
+      if (groupDetail.likeCount >= 100) {
+        badges.push("LIKE_100");
+      }
+
       const formatDetail = {
         id: groupDetail.id,
         name: groupDetail.name,
@@ -170,11 +186,11 @@ export class GroupController {
         tags: groupDetail.groupTags.map(gt => gt.tag?.name ?? ''),
         owner: groupDetail.ownerParticipant
           ? {
-              id: groupDetail.ownerParticipant.id,
-              nickname: groupDetail.ownerParticipant.nickname,
-              createdAt: groupDetail.ownerParticipant.createdAt,
-              updatedAt: groupDetail.ownerParticipant.updatedAt,
-            }
+            id: groupDetail.ownerParticipant.id,
+            nickname: groupDetail.ownerParticipant.nickname,
+            createdAt: groupDetail.ownerParticipant.createdAt,
+            updatedAt: groupDetail.ownerParticipant.updatedAt,
+          }
           : null,
         participants: groupDetail.participants.map(p => ({
           id: p.id,
@@ -184,7 +200,7 @@ export class GroupController {
         })),
         createdAt: groupDetail.createdAt,
         updatedAt: groupDetail.updatedAt,
-        badges: groupDetail.badges ?? [],
+        badges: badges
       };
 
       res.json(formatDetail);
@@ -275,8 +291,6 @@ export class GroupController {
         });
       });
 
-      await this.groupService.checkAndAwardBadges(groupId)
-      
       const group = await this.db.group.findUnique({
         where: { id: finalGroupId },
         include: {

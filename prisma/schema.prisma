@@ -2,6 +2,7 @@ generator client {
   provider      = "prisma-client-js"
   output        = "../generated/prisma"
   binaryTargets = ["native", "debian-openssl-3.0.x"]
+  moduleFormat  = "esm"
 }
 
 datasource db {
@@ -38,11 +39,10 @@ model Group {
   records            Record[]
 }
 
-
 enum Badges {
-  PARTICIPATION_10 
-  RECORD_100 
-  LIKE_100 
+  PARTICIPATION_10
+  RECORD_100
+  LIKE_100
 }
 
 model GroupTag {
