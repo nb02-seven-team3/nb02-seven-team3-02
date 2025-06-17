@@ -10,15 +10,15 @@ export class RecordController {
     }
 
     _isValidExercise(type) {
-        return ['러닝', '사이클링', '수영'].includes(type);
+        return ['러닝', '사이클링', '수영', 'run', 'cycle', 'swim'].includes(type);
     }
 
-    async _authenticateParticipant(id, nickname, password) {
+    async _authenticateParticipant(authorNickname, authorPassword) {
         const p = await this.db.participant.findUnique({
-            where: { id: Number(id) },
-            select: { nickname: true, password: true, groupId: true }
+            where: { nickname: authorNickname },
+            select: { id: true, nickname: true, password: true, groupId: true }
         });
-        if (!p || p.nickname !== nickname || p.password !== password) return false;
+        if (!p || p.password !== authorPassword) return false;
         return p;
     }
 
@@ -122,23 +122,34 @@ export class RecordController {
     // 기록 등록
     async uploadRecord(req, res, next) {
         try {
+            // const photos = req.files?.map(file => `/uploads/${file.filename}`) || req.body.photos || [];
             // superstruct로 body 검증 (유효하지 않으면 400 에러 throw)
             assert(req.body, CreateRecord);
 
             const groupId = Number(req.params.groupId);
-            const authorNickname = String(req.body.authorNickname);
-            const authorPassword = String(req.body.authorPassword);
-            const exerciseType = String(req.body.exerciseType);
-            const description = String(req.body.description ?? '');
-            const time = Number(req.body.time);
-            const distance = Number(req.body.distance);
-            const files = req.files;
+            // const authorNickname = String(req.body.authorNickname);
+            // const authorPassword = String(req.body.authorPassword);
+            // const exerciseType = String(req.body.exerciseType);
+            // const description = String(req.body.description ?? '');
+            // const time = Number(req.body.time);
+            // const distance = Number(req.body.distance);
+            // const files = req.files;
 
-            if (!files || files.length === 0) {
+            const {
+                authorNickname,
+                authorPassword,
+                exerciseType,
+                description = '',
+                time,
+                distance,
+                photos = [],
+            } = req.body;
+
+            if (!photos || photos.length === 0) {
                 return res.status(400).json({ message: '레코드 이미지가 업로드되지 않았습니다.' });
             }
 
-            const photos = files.map(file => `/uploads/${file.filename}`);
+            const parsedPhotos = Array.isArray(photos) ? photos : [photos];
 
             //유효성 검사
             if (isNaN(groupId) || !Number.isInteger(groupId) || groupId <= 0) {
@@ -160,9 +171,9 @@ export class RecordController {
                     description,
                     time: Number(time),
                     distance: Number(distance),
-                    photos,
+                    photos: parsedPhotos,
                     group: { connect: { id: groupId } },
-                    participant: { connect: { id: (participant.Id) } }
+                    participant: { connect: { id: (participant.id) } }
                 }
             });
 
@@ -174,7 +185,7 @@ export class RecordController {
 
             if (grp?.discordWebhookUrl) {
                 axios.post(grp.discordWebhookUrl, {
-                    content: `새 운동 기록: 닉네임=${nickname}, 운동=${exerciseType}, 시간=${time}초, 거리=${distance}m`
+                    content: `새 운동 기록: 닉네임=${participant.nickname}, 운동=${exerciseType}, 시간=${time}초, 거리=${distance}m`
                 }).catch(err =>
                     console.error('Discord webhook error:', err.message));
             }
