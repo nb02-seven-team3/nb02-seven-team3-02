@@ -132,7 +132,7 @@ Content-Type: application/json
 
 #랭크 조회 
 ###
-GET http://localhost:3000/groups/24/rank
+GET http://localhost:3000/groups/7/rank
 
 
 ###
