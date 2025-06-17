@@ -1,5 +1,7 @@
+
 import pkg from "@prisma/client";
 const { Badges } = pkg;
+
 import { BADGE_THRESHOLDS } from "../utils/constants.js";
 
 export class GroupService {
@@ -31,23 +33,23 @@ export class GroupService {
 
         //1) participants 뱃지 확인
         const participantsCount = group._count.participants;
-        if (participantsCount >= BADGE_THRESHOLDS.PARTICIPANTS && !currentBadges.has(Badges.PARTICIPANTS)) {
-            currentBadges.add(Badges.PARTICIPANTS);
-            console.log(`${group.name}이 PARTICIPANTS BADGE를 획득했습니다!`);
+        if (participantsCount >= BADGE_THRESHOLDS.PARTICIPATION_10 && !currentBadges.has(Badges.PARTICIPATION_10)) {
+            currentBadges.add(Badges.PARTICIPATION_10);
+            console.log(`${group.name}이 PARTICIPATION_10 BADGE를 획득했습니다!`);
         }
 
         //2) records 뱃지 확인
         const recordsCount = group._count.records;
-        if (recordsCount >= BADGE_THRESHOLDS.RECORDS && !currentBadges.has(Badges.RECORDS)) {
-            currentBadges.add(Badges.RECORDS);
-            console.log(`${group.name}이 RECORDS BADGE를 획득했습니다!`);
+        if (recordsCount >= BADGE_THRESHOLDS.RECORD_100 && !currentBadges.has(Badges.RECORD_100)) {
+            currentBadges.add(Badges.RECORD_100);
+            console.log(`${group.name}이 RECORD_100 BADGE를 획득했습니다!`);
         }
 
         //3) likes 뱃지 확인
         const likesCount = group.likeCount;
-        if (likesCount >= BADGE_THRESHOLDS.LIKES && !currentBadges.has(Badges.LIKES)) {
-            currentBadges.add(Badges.LIKES);
-            console.log(`${group.name}이 LIKES BADGE를 획득했습니다!`);
+        if (likesCount >= BADGE_THRESHOLDS.LIKE_100 && !currentBadges.has(Badges.LIKE_100)) {
+            currentBadges.add(Badges.LIKE_100);
+            console.log(`${group.name}이 LIKE_100 BADGE를 획득했습니다!`);
         }
 
         //변경 사항 발생 시 데이터베이스에 뱃지 목록 업데이트
@@ -58,8 +60,8 @@ export class GroupService {
                     data: {
                         badges: Array.from(currentBadges),
                     },
-                }),
-                    console.log(`${group.name}의 뱃지가 업데이트되었습니다.`);
+                });
+                console.log(`${group.name}의 뱃지가 업데이트되었습니다.`);
             } catch (error) {
                 console.error(`뱃지 업데이트에 실패했습니다. 오류: ${error.message}`);
             }

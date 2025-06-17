@@ -1,10 +1,14 @@
 import { assert, record } from "superstruct";
 import { CreateGroup, PatchGroup } from "../dtos/group.dto.js";
+import { EncryptService } from "../services/encryptService.js";
+import { GroupService } from "../services/group.service.js";
+
+const encrypt = new EncryptService();
 
 export class GroupController {
-
   constructor(prisma) {
     this.db = prisma;
+    this.groupService = new GroupService(prisma)
   }
 
   async getGroupList(req, res, next) {
@@ -27,9 +31,7 @@ export class GroupController {
           break;
         default:
           return res.status(400).json({ message: "The orderBy parameter must be one of the following values: [‘likeCount’, ‘participantCount’, ‘createdAt’]." })
-
       }
-      console.log('orderBy:', orderBy);
 
       const total = await this.db.group.count({
         where: {
@@ -75,6 +77,7 @@ export class GroupController {
         skip: Number(offset),
         take: Number(limit),
       });
+
       const formatList = groupList.map((list) => ({
         id: list.id,
         name: list.name,
@@ -84,7 +87,7 @@ export class GroupController {
         discordWebhookUrl: list.discordWebhookUrl,
         discordInviteUrl: list.discordInviteUrl,
         likeCount: list.likeCount,
-        tags: list.groupTags.map((gt) => gt.tag?.name ?? ''), // tag 객체 포함되어야 함
+        tags: list.groupTags.map((gt) => gt.tag?.name ?? ''),
         owner: list.ownerParticipant
           ? {
             id: list.ownerParticipant.id,
@@ -102,7 +105,6 @@ export class GroupController {
         createdAt: list.createdAt,
         updatedAt: list.updatedAt,
         badges: list.badges ?? []
-
       }));
 
       res.json({
@@ -114,6 +116,7 @@ export class GroupController {
       next(e);
     }
   };
+
   async getGroup(req, res, next) {
     try {
       const id = Number(req.params.id);
@@ -133,9 +136,7 @@ export class GroupController {
           createdAt: true,
           updatedAt: true,
           groupTags: {
-            include: {
-              tag: true,
-            }
+            include: { tag: true },
           },
           ownerParticipant: {
             select: {
@@ -143,7 +144,7 @@ export class GroupController {
               nickname: true,
               createdAt: true,
               updatedAt: true,
-            }
+            },
           },
           participants: {
             select: {
@@ -151,12 +152,13 @@ export class GroupController {
               nickname: true,
               createdAt: true,
               updatedAt: true,
-            }
+            },
           },
-        }
+        },
       });
+
       if (!groupDetail) {
-        res.status(404).json({ message: "Group not found" })
+        res.status(404).json({ message: "Group not found" });
       }
 
       // 배지 
@@ -171,7 +173,6 @@ export class GroupController {
       if (groupDetail.likeCount >= 100) {
         badges.push("LIKE_100");
       }
-
 
       const formatDetail = {
         id: groupDetail.id,
@@ -199,15 +200,9 @@ export class GroupController {
         })),
         createdAt: groupDetail.createdAt,
         updatedAt: groupDetail.updatedAt,
-        // badges: groupDetail.badges ?? [],
-        // enum Badges {
-        //   PARTICIPATION_10 
-        //   RECORD_100 
-        //   LIKE_100
-        // }
-
         badges: badges
       };
+
       res.json(formatDetail);
     } catch (e) {
       console.log(e);
@@ -234,11 +229,12 @@ export class GroupController {
         return res.status(400).json({ message: "goalRep must be an integer" });
       }
 
+      const hashedPassword = encrypt.passwordHash(ownerPassword);
+
       let finalGroupId;
       let ownerParticipantId;
 
       await this.db.$transaction(async (tx) => {
-        // 1. 그룹 생성
         const newGroup = await tx.group.create({
           data: {
             name,
@@ -250,22 +246,20 @@ export class GroupController {
             badges: [],
             likeCount: 0,
             ownerNickname,
-            ownerPassword,
+            ownerPassword: hashedPassword,
           },
         });
         finalGroupId = newGroup.id;
 
-        // 2. 그룹 소유자 참여자 생성
         const newParticipant = await tx.participant.create({
           data: {
             nickname: ownerNickname,
-            password: ownerPassword,
+            password: hashedPassword,
             groupId: newGroup.id,
           },
         });
         ownerParticipantId = newParticipant.id;
 
-        // 3. 태그 처리
         if (tags.length > 0) {
           const groupTagsToConnect = [];
           for (const tagName of tags) {
@@ -291,20 +285,18 @@ export class GroupController {
           });
         }
 
-        // 4. 그룹에 ownerParticipantId 설정
         await tx.group.update({
           where: { id: newGroup.id },
           data: { ownerParticipantId },
         });
       });
 
-      // 최종 그룹 정보 조회 및 응답 구성
       const group = await this.db.group.findUnique({
         where: { id: finalGroupId },
         include: {
           participants: true,
           groupTags: {
-            include: { tag: true }
+            include: { tag: true },
           },
         },
       });
@@ -334,7 +326,6 @@ export class GroupController {
         badges: group.badges,
         createdAt: new Date(group.createdAt).getTime(),
         updatedAt: new Date(group.updatedAt).getTime()
-
       };
 
       return res.json(response);
@@ -360,74 +351,40 @@ export class GroupController {
         ownerPassword: enterPassword,
       } = req.body;
 
-
-      // 그룹 존재 여부 확인
       const group = await this.db.group.findUnique({
         where: { id },
-        select: {
-          ownerPassword: true,
-          id: true,
-        },
+        select: { ownerPassword: true, id: true },
       });
 
       if (!group) {
         return res.status(404).json({ message: '그룹을 찾을 수 없습니다.' });
       }
 
-      // 비밀번호 검증 
-      if (enterPassword !== group.ownerPassword) {
+      if (!encrypt.passwordCheck(enterPassword, group.ownerPassword)) {
         return res.status(401).json({ message: '비밀번호가 틀렸습니다.' });
       }
 
-      // ─────── Prisma 트랜잭션 시작 ───────
       const changedGroup = await this.db.$transaction(async (tx) => {
-        //정보 업데이트를 위한 데이터 객체 생성
         const changeData = {};
-        if (name !== undefined) {
-          changeData.name = name.trim();
-        }
-        if (description !== undefined) {
-          changeData.description = description;
-        }
-        if (photoUrl !== undefined) {
-          changeData.photoUrl = photoUrl;
-        }
-        if (goalRep !== undefined) {
-          changeData.goalRep = goalRep;
-        }
-        if (discordWebhookUrl !== undefined) {
-          changeData.discordWebhookUrl = discordWebhookUrl;
-        }
-        if (discordInviteUrl !== undefined) {
-          changeData.discordInviteUrl = discordInviteUrl;
-        }
-        if (ownerNickname !== undefined) {
-          changeData.ownerNickname = ownerNickname;
-        }
+        if (name !== undefined) changeData.name = name.trim();
+        if (description !== undefined) changeData.description = description;
+        if (photoUrl !== undefined) changeData.photoUrl = photoUrl;
+        if (goalRep !== undefined) changeData.goalRep = goalRep;
+        if (discordWebhookUrl !== undefined) changeData.discordWebhookUrl = discordWebhookUrl;
+        if (discordInviteUrl !== undefined) changeData.discordInviteUrl = discordInviteUrl;
+        if (ownerNickname !== undefined) changeData.ownerNickname = ownerNickname;
 
-        //그룹 정보 업데이트 
-        await tx.group.update({
-          where: { id },
-          data: changeData,
-        });
+        await tx.group.update({ where: { id }, data: changeData });
 
-        /* tag 변경 시 groupTag 관계 업데이트 
-         tag 배열이 존재할 때 기존에 연결된 groupTag는 삭제하고 재연결 */
         if (tags !== undefined) {
-          await tx.groupTag.deleteMany({
-            where: { groupId: id },
-          });
-
+          await tx.groupTag.deleteMany({ where: { groupId: id } });
 
           if (tags.length > 0) {
             const groupTagsToConnect = [];
             for (const tagName of tags) {
-              // tag가 문자열이 아니거나, 빈 문자열이라면 에러 발생
               if (typeof tagName !== 'string' || tagName.trim() === '') {
                 throw new Error(`Invalid tag name provided: '${tagName}'.`);
               }
-
-              // tag를 찾거나, 없으면 생성 
               const tag = await tx.tag.upsert({
                 where: { name: tagName.trim() },
                 update: {},
@@ -435,53 +392,29 @@ export class GroupController {
               });
               groupTagsToConnect.push({ tagId: tag.id });
             }
-
-            //group에 groupTag 연결 
             await tx.group.update({
               where: { id },
-              data: {
-                groupTags: {
-                  create: groupTagsToConnect,
-                },
-              },
+              data: { groupTags: { create: groupTagsToConnect } },
             });
           }
         }
 
-        //업데이트 된 group 객체 반환 
         return tx.group.findUnique({
           where: { id },
           include: {
             groupTags: {
-              select: {
-                tag: {
-                  select: {
-                    id: true,
-                    name: true,
-                  }
-                },
-              },
+              select: { tag: { select: { id: true, name: true } } },
             },
             ownerParticipant: {
-              select: {
-                id: true,
-                nickname: true,
-                createdAt: true,
-                updatedAt: true,
-              }
+              select: { id: true, nickname: true, createdAt: true, updatedAt: true }
             },
             participants: {
-              select: {
-                id: true,
-                nickname: true,
-                createdAt: true,
-                updatedAt: true,
-              }
+              select: { id: true, nickname: true, createdAt: true, updatedAt: true }
             },
-
           },
         });
       });
+
       const responseData = {
         id: changedGroup.id,
         name: changedGroup.name,
@@ -509,30 +442,22 @@ export class GroupController {
     try {
       const id = Number(req.params.id);
       const { ownerPassword: enterPassword } = req.body;
+
       const realPassword = await this.db.group.findUnique({
-        where: {
-          id: id
-        },
-        select: {
-          ownerPassword: true
-        },
+        where: { id },
+        select: { ownerPassword: true },
       });
 
       if (!realPassword) {
         return res.status(404).json({ message: "없는 그룹입니다." });
       }
 
-
-      if (enterPassword === realPassword.ownerPassword) {
-        const deleteGroup = await this.db.group.delete({
-          where: {
-            id: id
-          }
-        })
-        return res.json(deleteGroup);
-      } else {
+      if (!encrypt.passwordCheck(enterPassword, realPassword.ownerPassword)) {
         return res.status(401).json({ message: "Wrong password" });
       }
+
+      const deleteGroup = await this.db.group.delete({ where: { id } });
+      return res.json(deleteGroup);
     } catch (e) {
       console.log(e);
       next(e);
