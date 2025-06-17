@@ -1,4 +1,4 @@
-import { assert } from "superstruct";
+import { assert, record } from "superstruct";
 import { CreateGroup, PatchGroup } from "../dtos/group.dto.js";
 
 export class GroupController {
@@ -129,6 +129,7 @@ export class GroupController {
           discordInviteUrl: true,
           likeCount: true,
           badges: true,
+          records: true,
           createdAt: true,
           updatedAt: true,
           groupTags: {
@@ -157,6 +158,21 @@ export class GroupController {
       if (!groupDetail) {
         res.status(404).json({ message: "Group not found" })
       }
+
+      // 배지 
+      const badges = [];
+
+      if (groupDetail.participants.length >= 10) {
+        badges.push("PARTICIPATION_10");
+      }
+      if (groupDetail.records && groupDetail.records.length >= 100) {
+        badges.push("RECORD_100");
+      }
+      if (groupDetail.likeCount >= 100) {
+        badges.push("LIKE_100");
+      }
+
+
       const formatDetail = {
         id: groupDetail.id,
         name: groupDetail.name,
@@ -183,7 +199,14 @@ export class GroupController {
         })),
         createdAt: groupDetail.createdAt,
         updatedAt: groupDetail.updatedAt,
-        badges: groupDetail.badges ?? [],
+        // badges: groupDetail.badges ?? [],
+        // enum Badges {
+        //   PARTICIPATION_10 
+        //   RECORD_100 
+        //   LIKE_100
+        // }
+
+        badges: badges
       };
       res.json(formatDetail);
     } catch (e) {
