@@ -1,5 +1,18 @@
-import { Badges } from "@prisma/client";
-import { BADGE_THRESHOLDS } from "../utils/constants";
+//import { Badges } from "@prisma/client";
+//import { BADGE_THRESHOLDS } from '../utils/constants.js';
+
+// ✅ 이렇게 수정하세요
+import prismaClient from '@prisma/client';
+const { Badges, PrismaClient } = prismaClient;
+
+//✅ 배지 획득 조건을 정의하는 상수를 추가합니다.
+const BADGE_THRESHOLDS = {
+  DISTANCE_10K: 10,    // 예시: 누적 거리 10km 이상
+  DISTANCE_50K: 50,    // 예시: 누적 거리 50km 이상
+  TIME_1_HOUR: 60,     // 예시: 누적 시간 60분 이상
+  TIME_5_HOURS: 300,   // 예시: 누적 시간 300분 이상
+};
+
 
 export class GroupService {
 

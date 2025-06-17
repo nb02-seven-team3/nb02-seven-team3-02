@@ -45,7 +45,7 @@ export class ParticipantController {
         },
       });
 
-      await GroupService.checkAndAwardBadges(parseInt(groupId));
+     await this.groupService.checkAndAwardBadges(groupId);
 
       //  다시 그룹 조회 
       const group = await this.db.group.findUnique({
@@ -132,6 +132,7 @@ export class ParticipantController {
       if (!participant || participant.password !== password) {
         return res.status(404).json({ message: '참여자가 존재하지 않거나 비밀번호가 일치하지 않습니다.' });
       }
+      
 
       // DB에서 참여자 및 관련 기록 삭제 (트랜잭션)
       await this.db.participant.delete({
