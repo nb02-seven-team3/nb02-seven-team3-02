@@ -1,3 +1,5 @@
+
+const BASE_URL = "http://localhost:3000";
 export class ImageController {
     async uploadImage(req, res, next) {
         try {
@@ -13,14 +15,10 @@ export class ImageController {
             if (!req.files) {
                 return res.status(404).json({ message: "파일 없음" });
             }
-            const urls = files.map(file => `/uploads/${file.filename}`);
+            const urls = files.map(file => `${BASE_URL}/uploads/${file.filename}`);
             const filenames = files.map(file => file.filename);
 
-            res.status(200).json({
-                message: '파일 업로드 완료',
-                filenames: filenames,
-                urls: urls,
-            });
+             res.status(200).json({urls});
         } catch (error) {
             console.error('이미지 업로드 중 오류 발생:', error);
             next(error);
