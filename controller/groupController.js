@@ -229,6 +229,8 @@ export class GroupController {
         ownerPassword,
       } = req.body;
 
+      name = name.trim();
+
       if (!Number.isInteger(goalRep)) {
         return res.status(400).json({ message: "goalRep must be an integer" });
       }

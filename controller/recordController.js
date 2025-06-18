@@ -23,6 +23,8 @@ export class RecordController {
     return p;
   }
 
+
+
   // 기록 목록 조회
   async getRecordList(req, res, next) {
     try {
@@ -155,6 +157,12 @@ export class RecordController {
       //참가자 인증
       const participant = await this._authenticateParticipant(authorNickname, authorPassword);
       if (!participant || participant.groupId !== groupId) {
+
+        // console.log("닉네임 인증 시도:", authorNickname);
+        // console.log("DB에서 찾은 참가자:", p);
+        // console.log("입력 비밀번호:", authorPassword);
+        // console.log("저장된 해시:", p?.password);
+
         return res.status(401).json({ message: '사용자 인증에 실패했습니다.' });
       }
 

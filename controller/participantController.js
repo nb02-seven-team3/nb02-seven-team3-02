@@ -7,14 +7,16 @@ import { assert } from "superstruct";
 export class ParticipantController {
   constructor(prisma) {
     this.db = prisma;
-   
+
   }
 
   async uploadParticipant(req, res, next) {
     try {
       const groupId = Number(req.params.groupId);
-      const { nickname, password } = req.body;
+      let { nickname, password } = req.body;
       assert(req.body, CreateParticipant);
+
+      nickname = nickname.replaceAll(' ', '');
 
       //groupId 유효성 검사
       if (isNaN(groupId)) {
@@ -49,7 +51,7 @@ export class ParticipantController {
           }
         },
       });
-     
+
 
       //  다시 그룹 조회 
       const group = await this.db.group.findUnique({
@@ -124,11 +126,11 @@ export class ParticipantController {
 
       const participant = await this.db.participant.findUnique({
         where: { nickname },
-        select: { id: true, nickname :true, password: true }
+        select: { id: true, nickname: true, password: true }
       });
 
       console.log(participant);
-      
+
       if (!participant) {
         return res.status(404).json({ message: "해당 닉네임의 참가자가 존재하지 않습니다." });
       }
