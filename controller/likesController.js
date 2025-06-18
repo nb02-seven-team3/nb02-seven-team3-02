@@ -1,9 +1,6 @@
-import { GroupService } from "../services/group.service.js";
-
 export class LikesController {
     constructor(prisma) {
         this.db = prisma;
-        this.groupService = new GroupService(prisma)
     }
 
     async uploadLike(req, res, next) {

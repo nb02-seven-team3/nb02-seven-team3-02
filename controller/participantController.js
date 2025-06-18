@@ -1,22 +1,19 @@
-
 import bcrypt from 'bcrypt';
 import { CreateParticipant } from "../dtos/participant.dto.js";
 import { assert } from "superstruct";
-import { GroupService } from "../services/group.service.js";
-
-
 
 export class ParticipantController {
   constructor(prisma) {
     this.db = prisma;
-    this.groupService = new GroupService(prisma)
   }
 
   async uploadParticipant(req, res, next) {
     try {
       const groupId = Number(req.params.groupId);
-      const { nickname, password } = req.body;
+      let { nickname, password } = req.body;
       assert(req.body, CreateParticipant);
+
+      nickname = nickname.replaceAll(' ', '')
 
       //groupId 유효성 검사
       if (isNaN(groupId)) {
@@ -36,7 +33,7 @@ export class ParticipantController {
         return res.status(409).json({ message: "Nickname already exists in this group." })
       }
 
-      const hashedPassword = await bcrypt.hash(password, 10); 
+      const hashedPassword = await bcrypt.hash(password, 10);
       // 비밀번호 암호화
 
       //참가자 생성
@@ -51,7 +48,6 @@ export class ParticipantController {
           }
         },
       });
-      await this.groupService.checkAndAwardBadges(parseInt(groupId));
 
       //  다시 그룹 조회 
       const group = await this.db.group.findUnique({
