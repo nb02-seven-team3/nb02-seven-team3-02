@@ -6,5 +6,5 @@ const router = express.Router({ mergeParams: true });
 const participantController = new ParticipantController(db);
 
 router.post('/', participantController.uploadParticipant.bind(participantController));
-router.delete('/:participantId', participantController.deleteParticipant.bind(participantController));
+router.delete('/', participantController.deleteParticipant.bind(participantController));
 export default router;

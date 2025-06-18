@@ -1,6 +1,9 @@
 import { assert, record } from "superstruct";
 import { CreateGroup, PatchGroup } from "../dtos/group.dto.js";
 import { hashPassword, comparePassword } from "../services/encryptService.js";
+import { EncryptService } from "../services/encryptService.js";
+
+const encrypt = new EncryptService();
 
 export class GroupController {
   constructor(prisma) {
@@ -230,7 +233,7 @@ export class GroupController {
         return res.status(400).json({ message: "goalRep must be an integer" });
       }
 
-      //const hashedPassword = encrypt.passwordHash(ownerPassword);
+      const hashedPassword = encrypt.passwordHash(ownerPassword);
       const hashed = await hashPassword(ownerPassword);
       let finalGroupId;
       let ownerParticipantId;

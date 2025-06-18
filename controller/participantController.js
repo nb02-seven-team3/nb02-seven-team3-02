@@ -1,19 +1,20 @@
+
 import bcrypt from 'bcrypt';
 import { CreateParticipant } from "../dtos/participant.dto.js";
 import { assert } from "superstruct";
 
+
 export class ParticipantController {
   constructor(prisma) {
     this.db = prisma;
+   
   }
 
   async uploadParticipant(req, res, next) {
     try {
       const groupId = Number(req.params.groupId);
-      let { nickname, password } = req.body;
+      const { nickname, password } = req.body;
       assert(req.body, CreateParticipant);
-
-      nickname = nickname.replaceAll(' ', '')
 
       //groupId 유효성 검사
       if (isNaN(groupId)) {
@@ -48,6 +49,7 @@ export class ParticipantController {
           }
         },
       });
+     
 
       //  다시 그룹 조회 
       const group = await this.db.group.findUnique({
@@ -118,30 +120,33 @@ export class ParticipantController {
 
   async deleteParticipant(req, res, next) {
     try {
-      const participantId = Number(req.params.participantId);
-      const { password: enteredPassword } = req.body; // 변수명을 헷갈리지 않게 변경
+      const { nickname, password: enteredPassword } = req.body;
 
       const participant = await this.db.participant.findUnique({
-        where: { id: participantId },
-        select: { password: true }
+        where: { nickname },
+        select: { id: true, nickname :true, password: true }
       });
 
-      if (!participant || !participant.password) {
-        return res.status(404).json({ message: "Participant not found or no password set." });
+      console.log(participant);
+      
+      if (!participant) {
+        return res.status(404).json({ message: "해당 닉네임의 참가자가 존재하지 않습니다." });
       }
 
-      const isPasswordValid = await bcrypt.compare(enteredPassword, participant.password)
+      const isPasswordValid = await bcrypt.compare(enteredPassword, participant.password);
 
       if (!isPasswordValid) {
-        return res.status(401).json({ message: "Incorrect password." });
+        return res.status(401).json({ message: "비밀번호가 일치하지 않습니다." });
       }
 
-      // 일단 삭제 로직은 잠시 멈추고 성공 응답을 보내서 로그를 확인합니다.
-      return res.status(200).json({ message: "Password is correct. Deletion test successful." });
+      await this.db.participant.delete({
+        where: { id: participant.id }
+      });
+
+      return res.status(200).json({ message: "참가자가 성공적으로 삭제되었습니다." });
 
     } catch (e) {
-      console.error("!!! CATCH 블록에서 에러 발생 !!!");
-      console.error(e);
+      console.error("!!! 참가자 삭제 에러 !!!", e);
       next(e);
     }
   }
