@@ -2,9 +2,7 @@ import axios from 'axios';
 import { assert } from "superstruct";
 import { CreateRecord, mapExerciseType, mapDescription } from "../dtos/record.dto.js";
 import { GroupService } from "../services/group.service.js";
-import { EncryptService } from "../services/encryptService.js";
-
-const encrypt = new EncryptService();
+import bcrypt from 'bcrypt';
 
 export class RecordController {
   constructor(prisma) {

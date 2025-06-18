@@ -1,6 +1,10 @@
+
+import bcrypt from 'bcrypt';
 import { CreateParticipant } from "../dtos/participant.dto.js";
 import { assert } from "superstruct";
 import { GroupService } from "../services/group.service.js";
+
+
 
 export class ParticipantController {
   constructor(prisma) {
@@ -32,11 +36,14 @@ export class ParticipantController {
         return res.status(409).json({ message: "Nickname already exists in this group." })
       }
 
+      const hashedPassword = await bcrypt.hash(password, 10); 
+      // 비밀번호 암호화
+
       //참가자 생성
       const participant = await this.db.participant.create({
         data: {
           nickname,
-          password,
+          password: hashedPassword,
           group: {
             connect: {
               id: groupId
@@ -45,7 +52,7 @@ export class ParticipantController {
         },
       });
       await this.groupService.checkAndAwardBadges(parseInt(groupId));
-      
+
       //  다시 그룹 조회 
       const group = await this.db.group.findUnique({
         where: { id: groupId },
@@ -115,33 +122,31 @@ export class ParticipantController {
 
   async deleteParticipant(req, res, next) {
     try {
-      const { groupId } = req.params;
-      const { nickname, password } = req.body;
+      const participantId = Number(req.params.participantId);
+      const { password: enteredPassword } = req.body; // 변수명을 헷갈리지 않게 변경
 
-      // 참여자 존재 여부, 비밀번호 일치 등 유효성 검사
-      if (!nickname || !password) {
-        return res.status(412).json({ message: '데이터 형식이 올바르지 않습니다.' });
-      }
-      const participant = await this.db.participant.findFirst({
-        where: {
-          groupId: Number(groupId),
-          nickname: nickname
-        }
-      });
-      if (!participant || participant.password !== password) {
-        return res.status(404).json({ message: '참여자가 존재하지 않거나 비밀번호가 일치하지 않습니다.' });
-      }
-
-      // DB에서 참여자 및 관련 기록 삭제 (트랜잭션)
-      await this.db.participant.delete({
-        where: { id: participant.id },
+      const participant = await this.db.participant.findUnique({
+        where: { id: participantId },
+        select: { password: true }
       });
 
-      // 성공 결과 응답
-      return res.status(200).json({ message: '그룹에서 정상적으로 탈퇴되었습니다.' });
-    } catch (error) {
-      console.error(error);
-      next(error);
+      if (!participant || !participant.password) {
+        return res.status(404).json({ message: "Participant not found or no password set." });
+      }
+
+      const isPasswordValid = await bcrypt.compare(enteredPassword, participant.password)
+
+      if (!isPasswordValid) {
+        return res.status(401).json({ message: "Incorrect password." });
+      }
+
+      // 일단 삭제 로직은 잠시 멈추고 성공 응답을 보내서 로그를 확인합니다.
+      return res.status(200).json({ message: "Password is correct. Deletion test successful." });
+
+    } catch (e) {
+      console.error("!!! CATCH 블록에서 에러 발생 !!!");
+      console.error(e);
+      next(e);
     }
-  };
+  }
 }

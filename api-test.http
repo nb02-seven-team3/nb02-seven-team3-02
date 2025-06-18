@@ -119,15 +119,25 @@ Content-Type: application/json
   "password" : "123123"
 }
 
+### 새로운 참여자 생성 (테스트용)
+POST http://localhost:3000/groups/1/participants
+Content-Type: application/json
+
+{
+  "nickname": "sky50",
+  "password": "password123"
+}
+
 ###참가자 삭제
-DELETE http://localhost:3000/groups/24/participants
+DELETE http://localhost:3000/groups/1/participants/6
 Content-Type: application/json
 
 {
   "nickname" : "테스트 ",
-  "password" : "321321"
+  "password" : "password123"
 }
 
+//삭제 하기 전에 다시 테스트용 
 
 
 #랭크 조회 

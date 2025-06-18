@@ -1,9 +1,8 @@
 import { assert, record } from "superstruct";
 import { CreateGroup, PatchGroup } from "../dtos/group.dto.js";
-import { EncryptService } from "../services/encryptService.js";
+import { hashPassword, comparePassword } from "../services/encryptService.js";
 import { GroupService } from "../services/group.service.js";
 
-const encrypt = new EncryptService();
 
 export class GroupController {
   constructor(prisma) {
@@ -229,8 +228,8 @@ export class GroupController {
         return res.status(400).json({ message: "goalRep must be an integer" });
       }
 
-      const hashedPassword = encrypt.passwordHash(ownerPassword);
-
+      //const hashedPassword = encrypt.passwordHash(ownerPassword);
+       const hashed = await hashPassword(ownerPassword);
       let finalGroupId;
       let ownerParticipantId;
 
@@ -246,7 +245,7 @@ export class GroupController {
             badges: [],
             likeCount: 0,
             ownerNickname,
-            ownerPassword: hashedPassword,
+            ownerPassword: hashed,
           },
         });
         finalGroupId = newGroup.id;
@@ -360,9 +359,14 @@ export class GroupController {
         return res.status(404).json({ message: '그룹을 찾을 수 없습니다.' });
       }
 
-      if (!encrypt.passwordCheck(enterPassword, group.ownerPassword)) {
-        return res.status(401).json({ message: '비밀번호가 틀렸습니다.' });
-      }
+     // if (!encrypt.passwordCheck(enterPassword, group.ownerPassword)) {
+        //return res.status(401).json({ message: '비밀번호가 틀렸습니다.' });
+     // }
+       
+      const isPasswordValid = await comparePassword(enterPassword, group.ownerPassword);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: '비밀번호가 틀렸습니다.' });
+    }
 
       const changedGroup = await this.db.$transaction(async (tx) => {
         const changeData = {};
@@ -439,28 +443,29 @@ export class GroupController {
   };
 
   async deleteGroup(req, res, next) {
-    try {
-      const id = Number(req.params.id);
-      const { ownerPassword: enterPassword } = req.body;
+  try {
+    const id = Number(req.params.groupId);
+    const { ownerPassword: enterPassword } = req.body;
 
-      const realPassword = await this.db.group.findUnique({
-        where: { id },
-        select: { ownerPassword: true },
-      });
+    const realPassword = await this.db.group.findUnique({
+      where: { id },
+      select: { ownerPassword: true },
+    });
 
-      if (!realPassword) {
-        return res.status(404).json({ message: "없는 그룹입니다." });
-      }
-
-      if (!encrypt.passwordCheck(enterPassword, realPassword.ownerPassword)) {
-        return res.status(401).json({ message: "Wrong password" });
-      }
-
-      const deleteGroup = await this.db.group.delete({ where: { id } });
-      return res.json(deleteGroup);
-    } catch (e) {
-      console.log(e);
-      next(e);
+    if (!realPassword) {
+      return res.status(404).json({ message: "없는 그룹입니다." });
     }
-  };
+
+    const isPasswordValid = await comparePassword(enterPassword, realPassword.ownerPassword);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: "Wrong password" });
+    }
+
+    const deleteGroup = await this.db.group.delete({ where: { id } });
+    return res.json(deleteGroup);
+  } catch (e) {
+    console.log(e);
+    next(e);
+  }
 }
+} 
