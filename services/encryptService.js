@@ -7,3 +7,12 @@ export const hashPassword = async (password) => {
 export const comparePassword = async (plainPassword, hashedPassword) => {
   return await bcrypt.compare(plainPassword, hashedPassword);
 };
+
+export class EncryptService {
+  passwordHash(pass) {
+    return bcrypt.hashSync(pass, 10)
+  }
+  passwordCheck(pass, hash) {
+    return bcrypt.compareSync(pass, hash)
+  }
+};
