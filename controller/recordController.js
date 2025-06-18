@@ -11,12 +11,12 @@ export class RecordController {
   }
 
   _isValidExercise(type) {
-    return ['러닝', '사이클링', '수영', 'run', 'cycle', 'swim'].includes(type);
+    return ['run', 'bike', 'swim'].includes(type);
   }
 
-  async _authenticateParticipant(authorNickname, authorPassword) {
-    const p = await this.db.participant.findUnique({
-      where: { nickname: authorNickname },
+  async _authenticateParticipant(authorNickname, authorPassword, authorGroupId) {
+    const p = await this.db.participant.findFirst({
+      where: { groupId: authorGroupId, nickname: authorNickname },
       select: { id: true, nickname: true, password: true, groupId: true }
     });
     if (!p || !encrypt.passwordCheck(authorPassword, p.password)) return false;
@@ -155,7 +155,7 @@ export class RecordController {
       }
 
       //참가자 인증
-      const participant = await this._authenticateParticipant(authorNickname, authorPassword);
+      const participant = await this._authenticateParticipant(authorNickname, authorPassword, groupId);
       if (!participant || participant.groupId !== groupId) {
 
         // console.log("닉네임 인증 시도:", authorNickname);

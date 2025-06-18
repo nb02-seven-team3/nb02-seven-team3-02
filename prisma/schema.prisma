@@ -56,7 +56,7 @@ model GroupTag {
 model Participant {
   id          Int      @id @default(autoincrement())
   groupId     Int
-  nickname    String   @unique
+  nickname    String
   password    String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -64,6 +64,8 @@ model Participant {
   group       Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
   ranks       Rank[]
   records     Record[]
+
+  @@unique([groupId, nickname])
 }
 
 model Record {
