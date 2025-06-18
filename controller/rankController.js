@@ -1,4 +1,3 @@
-// 쿼리 파라미터에서 페이지네이션 정보 추출
 function parsePagination(query) {
   let page = parseInt(query.page, 10) || 1;
   let size = parseInt(query.size, 10) || 20;
@@ -13,6 +12,30 @@ function parsePagination(query) {
   };
 }
 
+// 기간 계산 유틸
+function getDateRange(duration) {
+  const now = new Date();
+  let start, end;
+
+  if (duration === 'monthly') {
+    start = new Date(now.getFullYear(), now.getMonth(), 1);
+    end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  } else { // default weekly
+    const day = now.getDay(); // 0 (일) ~ 6 (토)
+    const diff = day === 0 ? 6 : day - 1;
+    start = new Date(now);
+    start.setDate(now.getDate() - diff);
+    end = new Date(start);
+    end.setDate(start.getDate() + 6);
+  }
+
+  // 시간 초기화
+  start.setHours(0, 0, 0, 0);
+  end.setHours(23, 59, 59, 999);
+
+  return [start, end];
+}
+
 export class RankController {
   constructor(prisma) {
     this.db = prisma;
@@ -21,17 +44,27 @@ export class RankController {
   async getRank(req, res, next) {
     try {
       const groupId = Number(req.params.groupId);
+      const { duration = 'weekly' } = req.query;
+
       if (isNaN(groupId) || !Number.isInteger(groupId) || groupId <= 0) {
-        return res.status(400).json({ message: "groupId must be integer" });
+        return res.status(400).json({ message: "groupId must be a positive integer" });
       }
 
       const { page, size, offset } = parsePagination(req.query);
+      const [startDate, endDate] = getDateRange(duration);
 
-      // 참여자 전체 조회 (records 포함)
+      // 참여자 + 해당 기간의 기록만 포함
       const participants = await this.db.participant.findMany({
         where: { groupId },
         include: {
-          records: true
+          records: {
+            where: {
+              createdAt: {
+                gte: startDate,
+                lte: endDate
+              }
+            }
+          }
         }
       });
 
@@ -52,6 +85,7 @@ export class RankController {
 
       return res.status(200).json(ranked);
     } catch (error) {
+      console.error(error);
       return next(error);
     }
   }

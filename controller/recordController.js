@@ -11,7 +11,7 @@ export class RecordController {
   }
 
   _isValidExercise(type) {
-    return ['러닝', '사이클링', '수영', 'run', 'cycle', 'swim'].includes(type);
+    return ['러닝', '사이클링', '수영', 'run', 'bike', 'swim'].includes(type);
   }
 
   async _authenticateParticipant(authorNickname, authorPassword) {
