@@ -1,13 +1,13 @@
 import axios from 'axios';
 import { assert } from "superstruct";
 import { CreateRecord, mapExerciseType, mapDescription } from "../dtos/record.dto.js";
-import { GroupService } from "../services/group.service.js";
-import bcrypt from 'bcrypt';
+import { EncryptService } from "../services/encryptService.js";
+
+const encrypt = new EncryptService();
 
 export class RecordController {
   constructor(prisma) {
     this.db = prisma;
-    this.groupService = new GroupService(prisma)
   }
 
   _isValidExercise(type) {
@@ -128,14 +128,6 @@ export class RecordController {
       assert(req.body, CreateRecord);
 
       const groupId = Number(req.params.groupId);
-      // const authorNickname = String(req.body.authorNickname);
-      // const authorPassword = String(req.body.authorPassword);
-      // const exerciseType = String(req.body.exerciseType);
-      // const description = String(req.body.description ?? '');
-      // const time = Number(req.body.time);
-      // const distance = Number(req.body.distance);
-      // const files = req.files;
-
       const {
         authorNickname,
         authorPassword,
