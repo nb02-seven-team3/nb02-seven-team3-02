@@ -157,7 +157,7 @@ export class GroupController {
       });
 
       if (!groupDetail) {
-        res.status(404).json({ message: "Group not found" });
+        return res.status(404).json({ message: "Group not found" });
       }
 
       // 배지 

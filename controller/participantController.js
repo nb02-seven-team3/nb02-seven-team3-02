@@ -122,10 +122,15 @@ export class ParticipantController {
 
   async deleteParticipant(req, res, next) {
     try {
+      const groupId = Number(req.params.groupId);
       const { nickname, password: enteredPassword } = req.body;
 
-      const participant = await this.db.participant.findUnique({
-        where: { nickname },
+      if (isNaN(groupId)) {
+        return res.status(400).json({ message: "Invalid groupId" });
+      }
+
+      const participant = await this.db.participant.findFirst({
+        where: { groupId, nickname, },
         select: { id: true, nickname: true, password: true }
       });
 
