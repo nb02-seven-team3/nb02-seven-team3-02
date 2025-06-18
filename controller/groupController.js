@@ -1,5 +1,5 @@
-import { assert, record } from "superstruct";
-import { CreateGroup, PatchGroup } from "../dtos/group.dto.js";
+import { assert } from "superstruct";
+import { CreateGroup, PatchGroup } from "../dtos/groupDto.js";
 import { hashPassword, comparePassword } from "../services/encryptService.js";
 import { EncryptService } from "../services/encryptService.js";
 

@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { assert } from "superstruct";
-import { CreateRecord, mapExerciseType, mapDescription } from "../dtos/record.dto.js";
+import { CreateRecord, mapExerciseType, mapDescription } from "../dtos/recordDto.js";
 import { EncryptService } from "../services/encryptService.js";
 
 const encrypt = new EncryptService();
@@ -22,8 +22,6 @@ export class RecordController {
     if (!p || !encrypt.passwordCheck(authorPassword, p.password)) return false;
     return p;
   }
-
-
 
   // 기록 목록 조회
   async getRecordList(req, res, next) {

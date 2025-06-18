@@ -1,5 +1,0 @@
-export const BADGE_THRESHOLDS = {
-    PARTICIPATION_10: 10,
-    RECORD_100: 100,
-    LIKE_100: 100,
-};
