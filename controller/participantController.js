@@ -3,9 +3,6 @@ import bcrypt from 'bcrypt';
 import { CreateParticipant } from "../dtos/participant.dto.js";
 import { assert } from "superstruct";
 import { GroupService } from "../services/group.service.js";
-import { hashPassword, comparePassword } from "../services/encryptService.js";
-
-
 
 
 
@@ -39,8 +36,8 @@ export class ParticipantController {
         return res.status(409).json({ message: "Nickname already exists in this group." })
       }
 
-       const hashedPassword = await hashPassword(password); // ✅
-// 비밀번호 암호화
+      const hashedPassword = await bcrypt.hash(password, 10); 
+      // 비밀번호 암호화
 
       //참가자 생성
       const participant = await this.db.participant.create({
@@ -124,49 +121,32 @@ export class ParticipantController {
   };
 
   async deleteParticipant(req, res, next) {
-  try {
-    console.log("--- 1. 삭제 요청 시작 ---");
+    try {
+      const participantId = Number(req.params.participantId);
+      const { password: enteredPassword } = req.body; // 변수명을 헷갈리지 않게 변경
 
-    const participantId = Number(req.params.participantId);
-    const { password: enteredPassword } = req.body; // 변수명을 헷갈리지 않게 변경
+      const participant = await this.db.participant.findUnique({
+        where: { id: participantId },
+        select: { password: true }
+      });
 
-    console.log("요청된 참여자 ID:", participantId);
-    console.log("입력된 비밀번호:", enteredPassword);
+      if (!participant || !participant.password) {
+        return res.status(404).json({ message: "Participant not found or no password set." });
+      }
 
-    console.log("--- 2. DB에서 사용자 조회 ---");
-    const participant = await this.db.participant.findUnique({
-      where: { id: participantId },
-      select: { password: true }
-    });
+      const isPasswordValid = await bcrypt.compare(enteredPassword, participant.password)
 
-    console.log("DB에서 찾은 참여자 정보:", participant);
-    
-    // 3단계 유효성 검사
-    if (!participant || !participant.password) {
-      console.log("오류: 참여자를 찾지 못했거나 DB에 비밀번호가 없습니다.");
-      return res.status(404).json({ message: "Participant not found or no password set." });
+      if (!isPasswordValid) {
+        return res.status(401).json({ message: "Incorrect password." });
+      }
+
+      // 일단 삭제 로직은 잠시 멈추고 성공 응답을 보내서 로그를 확인합니다.
+      return res.status(200).json({ message: "Password is correct. Deletion test successful." });
+
+    } catch (e) {
+      console.error("!!! CATCH 블록에서 에러 발생 !!!");
+      console.error(e);
+      next(e);
     }
-
-    console.log("DB에 저장된 해시:", participant.password);
-    console.log("--- 3. 비밀번호 비교 시작 ---");
-    const isPasswordValid = await comparePassword(enteredPassword, participant.password);
-
-    console.log("비교 결과 (isPasswordValid):", isPasswordValid);
-    console.log("--- 4. 비교 완료 ---");
-
-    if (!isPasswordValid) {
-      console.log("오류: 비밀번호가 일치하지 않아 401을 반환합니다.");
-      return res.status(401).json({ message: "Incorrect password." });
-    }
-
-    // 일단 삭제 로직은 잠시 멈추고 성공 응답을 보내서 로그를 확인합니다.
-    console.log("🎉 성공! 비밀번호가 일치했습니다.");
-    return res.status(200).json({ message: "Password is correct. Deletion test successful." });
-
-  } catch (e) {
-    console.error("!!! CATCH 블록에서 에러 발생 !!!");
-    console.error(e);
-    next(e);
   }
-}
 }

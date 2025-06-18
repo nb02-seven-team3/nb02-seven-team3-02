@@ -124,12 +124,12 @@ POST http://localhost:3000/groups/1/participants
 Content-Type: application/json
 
 {
-  "nickname": "dmsgP100",
+  "nickname": "sky50",
   "password": "password123"
 }
 
 ###참가자 삭제
-DELETE http://localhost:3000/groups/1/participants/5
+DELETE http://localhost:3000/groups/1/participants/6
 Content-Type: application/json
 
 {
