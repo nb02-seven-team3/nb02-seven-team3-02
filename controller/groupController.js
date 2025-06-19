@@ -1,5 +1,5 @@
-import { assert, record } from "superstruct";
-import { CreateGroup, PatchGroup } from "../dtos/group.dto.js";
+import { assert } from "superstruct";
+import { CreateGroup, PatchGroup } from "../dtos/groupDto.js";
 import { hashPassword, comparePassword } from "../services/encryptService.js";
 import { EncryptService } from "../services/encryptService.js";
 
@@ -12,24 +12,22 @@ export class GroupController {
 
   async getGroupList(req, res, next) {
     try {
-      const { name = '', offset = 0, limit = 3, order = 'createdAt' } = req.query;
-      let orderBy;
-      switch (order) {
-        case 'createdAt':
-          orderBy = { createdAt: 'desc' }
-          break;
-        case 'likeCount':
-          orderBy = { likeCount: 'desc' }
-          break;
-        case 'participantCount':
-          orderBy = {
-            participants: {
-              _count: 'desc'
-            }
-          };
-          break;
-        default:
-          return res.status(400).json({ message: "The orderBy parameter must be one of the following values: [‘likeCount’, ‘participantCount’, ‘createdAt’]." })
+      const { name = '', page = 1, limit = 10, orderBy = 'createdAt', order = 'desc' } = req.query;
+      let offset = 0
+
+      if (Number(page) > 1) {
+        offset = (page - 1) * Number(limit)
+      };
+
+      let orderByCondition;
+      if (orderBy === 'participantCount') {
+        orderByCondition = {
+          participants: {
+            _count: 'desc'
+          }
+        };
+      } else {
+        orderByCondition = { [orderBy]: order }
       }
 
       const total = await this.db.group.count({
@@ -72,7 +70,7 @@ export class GroupController {
             select: { participants: true },
           },
         },
-        orderBy,
+        orderBy: orderByCondition,
         skip: Number(offset),
         take: Number(limit),
       });

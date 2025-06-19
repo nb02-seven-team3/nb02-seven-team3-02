@@ -1,8 +1,6 @@
-
 import bcrypt from 'bcrypt';
-import { CreateParticipant } from "../dtos/participant.dto.js";
+import { CreateParticipant } from "../dtos/participantDto.js";
 import { assert } from "superstruct";
-
 
 export class ParticipantController {
   constructor(prisma) {
