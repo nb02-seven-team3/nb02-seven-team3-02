@@ -65,3 +65,5 @@ typings/
 uploads/
 
 api-test.http
+
+firebase-service-account.json

@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-   "prestart": "prisma generate",
+    "prestart": "prisma generate",
     "start": "node ./bin/www",
     "deploy": "prisma migrate deploy && prisma generate",
     "dev": "nodemon ./bin/www"
@@ -18,10 +18,12 @@
     "debug": "~2.6.9",
     "dotenv": "^16.5.0",
     "express": "~4.16.1",
+    "firebase-admin": "^13.4.0",
     "isurl": "^4.0.2",
     "morgan": "~1.9.1",
     "multer": "^2.0.1",
-    "superstruct": "^2.0.2"
+    "superstruct": "^2.0.2",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.10",
