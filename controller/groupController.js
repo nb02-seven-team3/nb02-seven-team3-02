@@ -12,7 +12,7 @@ export class GroupController {
 
   async getGroupList(req, res, next) {
     try {
-      const { name = '', page = 1, limit = 10, orderBy = 'createdAt', order = 'desc' } = req.query;
+      const { search = '', page = 1, limit = 10, orderBy = 'createdAt', order = 'desc' } = req.query;
       let offset = 0
 
       if (Number(page) > 1) {
@@ -21,19 +21,24 @@ export class GroupController {
 
       let orderByCondition;
       if (orderBy === 'participantCount') {
-        orderByCondition = {
-          participants: {
-            _count: 'desc'
-          }
-        };
+        orderByCondition = [
+          {
+            participants: {
+              _count: order, // order도 반영 (asc/desc)
+            },
+          },
+          {
+            id: 'asc', // 보조 정렬 기준 추가
+          },
+        ];
       } else {
-        orderByCondition = { [orderBy]: order }
+        orderByCondition = [{ [orderBy]: order }];
       }
 
       const total = await this.db.group.count({
         where: {
           name: {
-            contains: name,
+            contains: search,
             mode: 'insensitive',
           },
         },
@@ -42,7 +47,7 @@ export class GroupController {
       const groupList = await this.db.group.findMany({
         where: {
           name: {
-            contains: name,
+            contains: search,
             mode: 'insensitive',
           },
         },
