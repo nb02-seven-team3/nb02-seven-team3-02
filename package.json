@@ -4,8 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "deploy": "prisma migrate deploy && prisma generate",
+   "prestart": "prisma generate",
     "start": "node ./bin/www",
+    "deploy": "prisma migrate deploy && prisma generate",
     "dev": "nodemon ./bin/www"
   },
   "dependencies": {
