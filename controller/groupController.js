@@ -12,7 +12,7 @@ export class GroupController {
 
   async getGroupList(req, res, next) {
     try {
-      const { name = '', offset = 0, limit = 10, order = 'createdAt' } = req.query;
+      const { name = '', offset = 0, limit = 3, order = 'createdAt' } = req.query;
       let orderBy;
       switch (order) {
         case 'createdAt':
@@ -77,6 +77,8 @@ export class GroupController {
         take: Number(limit),
       });
 
+      console.log(offset, limit)
+      console.log(groupList.map(g => g.id));
       const formatList = groupList.map((list) => ({
         id: list.id,
         name: list.name,
