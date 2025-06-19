@@ -1,0 +1,92 @@
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../generated/prisma"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+  moduleFormat  = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Tag {
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @default(now())
+  groupTags GroupTag[]
+}
+
+model Group {
+  id                 Int           @id @default(autoincrement())
+  ownerParticipantId Int?
+  ownerNickname      String
+  ownerPassword      String
+  name               String
+  description        String
+  photoUrl           String
+  goalRep            Int
+  discordWebhookUrl  String
+  discordInviteUrl   String
+  badges             Badges[]
+  likeCount          Int           @default(0)
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  ownerParticipant   Participant?  @relation("GroupOwner", fields: [ownerParticipantId], references: [id], onDelete: Cascade)
+  groupTags          GroupTag[]
+  participants       Participant[]
+  records            Record[]
+}
+
+enum Badges {
+  PARTICIPATION_10
+  RECORD_100
+  LIKE_100
+}
+
+model GroupTag {
+  id      Int   @id @default(autoincrement())
+  groupId Int
+  tagId   Int
+  group   Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  tag     Tag   @relation(fields: [tagId], references: [id])
+}
+
+model Participant {
+  id          Int      @id @default(autoincrement())
+  groupId     Int
+  nickname    String
+  password    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  groupsOwned Group[]  @relation("GroupOwner")
+  group       Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  ranks       Rank[]
+  records     Record[]
+
+  @@unique([groupId, nickname])
+}
+
+model Record {
+  id            Int         @id @default(autoincrement())
+  exerciseType  String
+  description   String
+  time          Int
+  distance      Int
+  photos        String[]
+  participantId Int
+  groupId       Int
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  group         Group       @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+}
+
+model Rank {
+  id            Int         @id @default(autoincrement())
+  participantId Int
+  recordCount   Int
+  recordTime    Int
+  participant   Participant @relation(fields: [participantId], references: [id])
+}
