@@ -32,7 +32,10 @@ export class GroupController {
           },
         ];
       } else {
-        orderByCondition = [{ [orderBy]: order }];
+        orderByCondition = [
+          { [orderBy]: order },
+          { id: 'asc' }, // 항상 보조 정렬 기준 추가
+        ];
       }
 
       const total = await this.db.group.count({
