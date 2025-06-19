@@ -12,11 +12,12 @@ import tagRouter from './routes/tag.js';
 
 const app = express();
 
-app.use(express.json());
 app.use(cors({
-  origin: 'http://localhost:3001', // 프론트 주소
+  origin: 'https://nb02-seven-team3-01.onrender.com', // 프론트 주소
   credentials: true, // 쿠키 사용 시 필요 (없으면 false로 해도 됨)
 }));
+
+app.use(express.json());
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 app.use(logger('dev'));
 app.use(express.urlencoded({ extended: false }));

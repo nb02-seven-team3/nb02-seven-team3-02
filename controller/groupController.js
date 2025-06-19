@@ -345,6 +345,7 @@ export class GroupController {
         createdAt: new Date(group.createdAt).getTime(),
         updatedAt: new Date(group.updatedAt).getTime()
       };
+      console.log("🔥 업로드된 photoUrl:", photoUrl);
       return res.json(response);
     } catch (e) {
       console.error(e);
