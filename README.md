@@ -20,6 +20,7 @@ https://cuddly-bull-c5e.notion.site/3-206d92d499f880eebddfd146884b3ed7
 
 ### 팀원별 구현 기능 상세
 #### 권은혜
+Participant 개발 : Participant생성 기능과 삭제 기능 API 개발, Participant Bcrypt 기능 구현
 #### 고민재
 #### 박건영
 #### 윤희원
