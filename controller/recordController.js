@@ -188,7 +188,6 @@ export class RecordController {
         }).catch(err =>
           console.error('Discord webhook error:', err.message));
       }
-
       // 등록 결과도 명세서에 맞는 구조로 바로 가공
       return res.status(201).json({
         id: newRecord.id,

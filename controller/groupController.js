@@ -228,16 +228,20 @@ export class GroupController {
       let {
         name,
         description,
-        photoUrl,
         goalRep,
         discordWebhookUrl,
         discordInviteUrl,
         tags = [],
         ownerNickname,
         ownerPassword,
+        photoUrl,
       } = req.body;
 
       name = name.trim();
+
+      if (!photoUrl) {
+        return res.status(400).json({ message: "photoUrl is required" });
+      }
 
       if (!Number.isInteger(goalRep)) {
         return res.status(400).json({ message: "goalRep must be an integer" });
@@ -341,7 +345,6 @@ export class GroupController {
         createdAt: new Date(group.createdAt).getTime(),
         updatedAt: new Date(group.updatedAt).getTime()
       };
-
       return res.json(response);
     } catch (e) {
       console.error(e);
